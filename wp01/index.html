@@ -155,7 +155,7 @@
             desc: "Test funzionali interni pre-UAT" },
           { id: "UAT.2", name: "UAT con UNINT", release: 4, deps: ["UAT.1"], duration: 7, critical: false, milestone: true, owner: "Solution + UNINT", start: "15/03", end: "22/03",
             desc: "User Acceptance Testing con stakeholder UNINT" },
-          { id: "UAT.3", name: "Bug Fixing e Correzioni", release: 4, deps: ["UAT.2"], duration: 7, critical: false, owner: "Solution", start: "02/03", end: "29/03",
+          { id: "UAT.3", name: "Bug Fixing e Correzioni", release: 4, deps: ["UAT.2"], duration: 28, critical: false, owner: "Solution", start: "02/03", end: "29/03",
             desc: "Risoluzione issue emersi in UAT" },
           
           // FORMAZIONE
@@ -171,7 +171,7 @@
             desc: "Training SCDL" },
           
           // GO-LIVE
-          { id: "FAM", name: "Familiarizzazione Sistema", release: 6, deps: ["F.1", "F.2", "F.3", "F.4"], duration: 4, critical: false, owner: "UNINT", start: "28/03", end: "31/03",
+          { id: "FAM", name: "Familiarizzazione Sistema Uffici", release: 6, deps: ["F.1", "F.2", "F.3", "F.4"], duration: 16, critical: false, owner: "UNINT", start: "16/03", end: "31/03",
             desc: "Test hands-on governance + uffici" },
           { id: "GL.1", name: "Cutover e Migrazione", release: 6, deps: ["FAM"], duration: 1, critical: true, milestone: true, owner: "Stakeholders", start: "31/03", end: "31/03",
             desc: "Passaggio a produzione" },
