@@ -3,262 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard GANTT WP02-18 - Progetto CRM UNINT</title>
+    <title>Dashboard GANTT WP02-17 v2 - CRM UNINT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
     <style>
         body { font-family: 'Segoe UI', system-ui, sans-serif; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #1E3A5F; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .node-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
     </style>
 </head>
-<body>
-    <div id="root">
-        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
-            <div class="loader"></div>
-            <p style="margin-top: 20px; color: #666;">Caricamento Dashboard GANTT WP02-18...</p>
-        </div>
-    </div>
+<body class="bg-slate-50">
+    <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useMemo } = React;
+        const { useState, useMemo, useCallback } = React;
 
-        // ============ DATI RIEPILOGO WP02-18 ============
-        const workPackages = [
-          { id: "WP02", name: "Alta Formazione", start: "20/02/2026", end: "13/03/2026", days: 22, reuse: "70%", interview: "2gg (20-21/02)", parallel: "-", deps: ["WP01"], color: "#3B82F6" },
-          { id: "WP03", name: "Form. Insegnanti", start: "16/03/2026", end: "03/04/2026", days: 19, reuse: "75%", interview: "2gg (16-17/03)", parallel: "-", deps: ["WP01"], color: "#8B5CF6" },
-          { id: "WP04", name: "CLA", start: "06/04/2026", end: "24/04/2026", days: 19, reuse: "65%", interview: "3gg (06-08/04)", parallel: "-", deps: ["WP01"], color: "#EC4899" },
-          { id: "WP05", name: "TBC WooCommerce", start: "-", end: "-", days: null, reuse: "-", interview: "-", parallel: "-", deps: ["WP01"], color: "#9CA3AF", tbc: true },
-          { id: "WP06", name: "Ricerca Dottorati", start: "27/04/2026", end: "15/05/2026", days: 19, reuse: "50%", interview: "Riconferma 1gg", parallel: "-", deps: ["WP04"], color: "#F59E0B" },
-          { id: "WP07", name: "Protocolli", start: "18/05/2026", end: "29/05/2026", days: 12, reuse: "40%", interview: "Riconferma 1gg", parallel: "//WP06", deps: ["WP05"], color: "#10B981" },
-          { id: "WP08", name: "Convenzioni", start: "18/05/2026", end: "29/05/2026", days: 12, reuse: "80%", interview: "Riconferma 1gg", parallel: "//WP07", deps: ["WP05"], color: "#14B8A6" },
-          { id: "WP09", name: "Placement", start: "01/06/2026", end: "12/06/2026", days: 12, reuse: "30%", interview: "2gg (01-02/06)", parallel: "//WP08", deps: ["WP06", "WP07"], color: "#EF4444" },
-          { id: "WP10", name: "Mobilità UMRI", start: "01/06/2026", end: "12/06/2026", days: 12, reuse: "35%", interview: "2gg (01-02/06)", parallel: "//WP09", deps: ["WP06", "WP07"], color: "#F97316" },
-          { id: "WP11", name: "HR", start: "15/06/2026", end: "24/06/2026", days: 10, reuse: "25%", interview: "Riconferma 1gg", parallel: "//WP10", deps: ["WP08", "WP09"], color: "#6366F1" },
-          { id: "WP12", name: "Statistiche", start: "15/06/2026", end: "24/06/2026", days: 10, reuse: "60%", interview: "Riconferma 1gg", parallel: "-", deps: ["WP01-WP11"], color: "#8B5CF6" },
-          { id: "WP13", name: "Sviluppi", start: "01/07/2027", end: "24/06/2027", days: null, reuse: "-", interview: "-", parallel: "Rolling", deps: ["Ogni WP"], color: "#64748B", rolling: true },
-          { id: "WP14", name: "Formazione", start: "16/03/2026", end: "30/06/2026", days: null, reuse: "-", interview: "-", parallel: "Rolling", deps: ["Ogni WP"], color: "#A855F7", rolling: true },
-          { id: "WP15", name: "SSO+Migrazione", start: "22/06/2026", end: "30/06/2026", days: 9, reuse: "-", interview: "Kick-off IT", parallel: "-", deps: ["WP10", "WP11"], color: "#DC2626" }
-        ];
-
-        // ============ ATTIVITÀ DETTAGLIO PER WP ============
+        // ========== DATI COMPLETI GANTT V2 ==========
         const activities = [
-          // WP02 - Alta Formazione
-          { id: "2.0", name: "Intervista Stakeholder", wp: "WP02", deps: ["WP01"], duration: 2, critical: false, owner: "PM + SS", start: "20/02", end: "21/02", phase: true, desc: "Approfondimento AF" },
-          { id: "2.0.1", name: "Intervista Ufficio Alta Formazione", wp: "WP02", deps: [], duration: 2, critical: false, owner: "PM + SS", start: "20/02", end: "21/02", desc: "Corsi, workflow, integrazioni" },
-          { id: "2.1", name: "Setup Ambiente AF", wp: "WP02", deps: ["2.0.1"], duration: 2, critical: false, owner: "SS", start: "23/02", end: "24/02", phase: true, desc: "" },
-          { id: "2.1.1", name: "Clonazione struttura da WP01", wp: "WP02", deps: [], duration: 1, critical: false, owner: "SS", start: "23/02", end: "23/02", desc: "Riuso 70%" },
-          { id: "2.1.2", name: "Layout AF e personalizzazioni", wp: "WP02", deps: ["2.1.1"], duration: 1, critical: false, owner: "SS", start: "24/02", end: "24/02", desc: "" },
-          { id: "2.2", name: "Modulo Lead AF", wp: "WP02", deps: ["2.1.2"], duration: 6, critical: true, owner: "SS", start: "25/02", end: "02/03", phase: true, desc: "" },
-          { id: "2.2.1", name: "Struttura Lead Alta Formazione", wp: "WP02", deps: [], duration: 2, critical: true, owner: "SS", start: "25/02", end: "26/02", desc: "" },
-          { id: "2.2.2", name: "Campi specifici corsi AF", wp: "WP02", deps: ["2.2.1"], duration: 1, critical: false, owner: "SS", start: "27/02", end: "27/02", desc: "" },
-          { id: "2.2.3", name: "Layout Rules e validazioni", wp: "WP02", deps: ["2.2.2"], duration: 1, critical: false, owner: "SS", start: "02/03", end: "02/03", desc: "" },
-          { id: "2.3", name: "Struttura Corsi + Studenti", wp: "WP02", deps: ["2.2.3"], duration: 4, critical: false, owner: "SS", start: "03/03", end: "06/03", phase: true, desc: "" },
-          { id: "2.3.1", name: "Modulo Corsi + Studenti AF", wp: "WP02", deps: [], duration: 3, critical: false, owner: "SS", start: "03/03", end: "05/03", desc: "" },
-          { id: "2.3.2", name: "Relazioni e storico", wp: "WP02", deps: ["2.3.1"], duration: 1, critical: false, owner: "SS", start: "06/03", end: "06/03", desc: "" },
-          { id: "2.4", name: "Workflow e Automazioni", wp: "WP02", deps: ["2.3.2"], duration: 3, critical: true, owner: "SS", start: "09/03", end: "11/03", phase: true, desc: "" },
-          { id: "2.4.1", name: "Workflow assegnazione [riuso WP01]", wp: "WP02", deps: [], duration: 1, critical: false, owner: "SS", start: "09/03", end: "09/03", desc: "" },
-          { id: "2.4.2", name: "Workflow conversione + email", wp: "WP02", deps: ["2.4.1"], duration: 2, critical: true, owner: "SS", start: "10/03", end: "11/03", desc: "" },
-          { id: "2.5", name: "Dashboard + Test", wp: "WP02", deps: ["2.4.2"], duration: 2, critical: true, owner: "SS", start: "12/03", end: "13/03", phase: true, desc: "" },
-          { id: "2.5.1", name: "Dashboard AF + Report", wp: "WP02", deps: [], duration: 1, critical: false, owner: "SS", start: "12/03", end: "12/03", desc: "" },
-          { id: "2.5.2", name: "Test e2e + UAT", wp: "WP02", deps: ["2.5.1"], duration: 1, critical: true, owner: "PM + AF", start: "13/03", end: "13/03", desc: "" },
-          { id: "2.6", name: "✓ WP02 AF Completato", wp: "WP02", deps: ["2.5.2"], duration: 0, critical: true, owner: "PM", start: "13/03", end: "13/03", milestone: true, desc: "" },
+          // === WP02 ALTA FORMAZIONE ===
+          { id: "2.0", name: "INTERVISTA STAKEHOLDER", wp: "WP02", deps: ["WP01"], duration: 5, critical: false, owner: "PM+SS+UNINT", start: "26/01", end: "30/01", phase: true, priority: "ALTA", note: "Approfondimento AF" },
+          { id: "2.0.1", name: "Intervista Ufficio Alta Formazione", wp: "WP02", deps: [], duration: 5, critical: false, owner: "PM+SS+UNINT", start: "26/01", end: "30/01", priority: "ALTA", note: "Corsi, workflow, integrazioni" },
+          { id: "2.1", name: "SETUP AMBIENTE AF", wp: "WP02", deps: ["WP01"], duration: 12, critical: false, owner: "SS", start: "08/01", end: "23/01", phase: true, priority: "ALTA" },
+          { id: "2.1.1", name: "Clonazione struttura da WP01", wp: "WP02", deps: [], duration: 5, critical: false, owner: "SS", start: "08/01", end: "14/01", priority: "MEDIA", note: "Riuso 70%" },
+          { id: "2.1.2", name: "Layout AF e personalizzazioni", wp: "WP02", deps: ["2.1.1"], duration: 7, critical: false, owner: "SS", start: "15/01", end: "23/01", priority: "ALTA" },
+          { id: "2.2", name: "MODULO LEAD AF", wp: "WP02", deps: ["2.1.2"], duration: 10, critical: true, owner: "SS", start: "02/02", end: "13/02", phase: true, priority: "CRITICA" },
+          { id: "2.2.1", name: "Struttura Lead Alta Formazione", wp: "WP02", deps: [], duration: 4, critical: true, owner: "SS", start: "02/02", end: "05/02", priority: "CRITICA" },
+          { id: "2.2.2", name: "Campi specifici corsi AF", wp: "WP02", deps: ["2.2.1"], duration: 3, critical: false, owner: "SS", start: "06/02", end: "10/02", priority: "ALTA" },
+          { id: "2.2.3", name: "Layout Rules e validazioni", wp: "WP02", deps: ["2.2.2"], duration: 3, critical: false, owner: "SS", start: "11/02", end: "13/02", priority: "ALTA" },
+          { id: "2.3", name: "STRUTTURA CORSI + STUDENTI", wp: "WP02", deps: ["2.2.3"], duration: 10, critical: false, owner: "SS", start: "16/02", end: "27/02", phase: true, priority: "ALTA" },
+          { id: "2.3.1", name: "Modulo Corsi AF", wp: "WP02", deps: [], duration: 5, critical: false, owner: "SS", start: "16/02", end: "20/02", priority: "ALTA" },
+          { id: "2.3.2", name: "Modulo Studenti AF", wp: "WP02", deps: ["2.3.1"], duration: 3, critical: false, owner: "SS", start: "23/02", end: "25/02", priority: "ALTA" },
+          { id: "2.3.3", name: "Relazioni e storico", wp: "WP02", deps: ["2.3.2"], duration: 2, critical: false, owner: "SS", start: "26/02", end: "27/02", priority: "MEDIA" },
+          { id: "2.3.4", name: "Lead da E-Formare", wp: "WP02", deps: [], duration: 2, critical: false, owner: "-", start: "26/02", end: "27/02", rf: true, note: "Requisito funzionale" },
+          { id: "2.4", name: "WORKFLOW E AUTOMAZIONI", wp: "WP02", deps: ["2.3.3"], duration: 10, critical: true, owner: "SS", start: "02/03", end: "13/03", phase: true, priority: "CRITICA" },
+          { id: "2.4.1", name: "Workflow assegnazione [riuso WP01]", wp: "WP02", deps: [], duration: 4, critical: false, owner: "SS", start: "02/03", end: "05/03", priority: "ALTA" },
+          { id: "2.4.2", name: "Workflow conversione + email", wp: "WP02", deps: ["2.4.1"], duration: 6, critical: true, owner: "SS", start: "06/03", end: "13/03", priority: "CRITICA" },
+          { id: "2.5", name: "INTEGRAZIONI", wp: "WP02", deps: ["2.3.3"], duration: 15, critical: true, owner: "DEV+SS", start: "16/03", end: "03/04", phase: true, priority: "CRITICA" },
+          { id: "2.5.1", name: "Integrazioni ESSE3", wp: "WP02", deps: [], duration: 8, critical: true, owner: "DEV+SS+Unint", start: "16/03", end: "25/03", priority: "CRITICA" },
+          { id: "2.5.2", name: "Delta e-formare con dati ESSE3", wp: "WP02", deps: ["2.5.1"], duration: 4, critical: false, owner: "DEV+SS+Unint", start: "26/03", end: "31/03", priority: "ALTA" },
+          { id: "2.5.3", name: "Automazioni e gestioni flussi", wp: "WP02", deps: ["2.5.2"], duration: 3, critical: false, owner: "DEV+SS+Unint", start: "01/04", end: "03/04", priority: "ALTA" },
+          { id: "2.6", name: "DASHBOARD + TEST", wp: "WP02", deps: ["2.5.3"], duration: 8, critical: true, owner: "SS", start: "06/04", end: "15/04", phase: true, priority: "CRITICA" },
+          { id: "2.6.1", name: "Dashboard AF + Report", wp: "WP02", deps: [], duration: 4, critical: false, owner: "SS", start: "06/04", end: "09/04", priority: "ALTA" },
+          { id: "2.6.2", name: "Test e2e + UAT", wp: "WP02", deps: ["2.6.1"], duration: 4, critical: true, owner: "PM + AF", start: "10/04", end: "15/04", priority: "CRITICA" },
+          { id: "2.7", name: "✓ WP02 AF Completato", wp: "WP02", deps: ["2.6.2"], duration: 0, critical: true, owner: "PM", start: "15/04", end: "15/04", milestone: true },
 
-          // WP03 - Formazione Insegnanti
-          { id: "3.0", name: "Intervista Stakeholder", wp: "WP03", deps: ["WP02"], duration: 2, critical: false, owner: "PM + SS", start: "16/03", end: "17/03", phase: true, desc: "TFA, CFU" },
-          { id: "3.0.1", name: "Intervista Ufficio Form. Insegnanti", wp: "WP03", deps: [], duration: 2, critical: false, owner: "PM + SS", start: "16/03", end: "17/03", desc: "TFA sostegno, 30/36/60 CFU" },
-          { id: "3.1", name: "Setup + Lead FI", wp: "WP03", deps: ["3.0.1"], duration: 7, critical: true, owner: "SS", start: "18/03", end: "24/03", phase: true, desc: "" },
-          { id: "3.1.1", name: "Clonazione da WP02 (75%)", wp: "WP03", deps: [], duration: 1, critical: false, owner: "SS", start: "18/03", end: "18/03", desc: "" },
-          { id: "3.1.2", name: "Struttura Lead FI", wp: "WP03", deps: ["3.1.1"], duration: 2, critical: true, owner: "SS", start: "19/03", end: "20/03", desc: "" },
-          { id: "3.1.3", name: "Campi TFA + CFU", wp: "WP03", deps: ["3.1.2"], duration: 2, critical: false, owner: "SS", start: "23/03", end: "24/03", desc: "" },
-          { id: "3.2", name: "Workflow + ESSE3", wp: "WP03", deps: ["3.1.3"], duration: 6, critical: true, owner: "SS", start: "25/03", end: "30/03", phase: true, desc: "" },
-          { id: "3.2.1", name: "Workflow assegnazione [riuso]", wp: "WP03", deps: [], duration: 1, critical: false, owner: "SS", start: "25/03", end: "25/03", desc: "" },
-          { id: "3.2.2", name: "Workflow conversione", wp: "WP03", deps: ["3.2.1"], duration: 2, critical: true, owner: "SS", start: "26/03", end: "27/03", desc: "" },
-          { id: "3.2.3", name: "Integrazione ESSE3", wp: "WP03", deps: ["3.2.2"], duration: 1, critical: true, owner: "DEV", start: "30/03", end: "30/03", desc: "" },
-          { id: "3.3", name: "Dashboard + Test", wp: "WP03", deps: ["3.2.3"], duration: 4, critical: true, owner: "SS", start: "31/03", end: "03/04", phase: true, desc: "" },
-          { id: "3.3.1", name: "Dashboard FI + Report", wp: "WP03", deps: [], duration: 1, critical: false, owner: "SS", start: "31/03", end: "31/03", desc: "" },
-          { id: "3.3.2", name: "Test e2e ESSE3", wp: "WP03", deps: ["3.3.1"], duration: 2, critical: true, owner: "DEV", start: "01/04", end: "02/04", desc: "" },
-          { id: "3.3.3", name: "UAT con Ufficio FI", wp: "WP03", deps: ["3.3.2"], duration: 1, critical: true, owner: "PM + FI", start: "03/04", end: "03/04", desc: "" },
-          { id: "3.4", name: "✓ WP03 FI Completato", wp: "WP03", deps: ["3.3.3"], duration: 0, critical: true, owner: "PM", start: "03/04", end: "03/04", milestone: true, desc: "" },
+          // === WP03 FORM INSEGNANTI ===
+          { id: "3.0", name: "INTERVISTA STAKEHOLDER", wp: "WP03", deps: ["WP02"], duration: 5, critical: false, owner: "PM + SS", start: "26/01", end: "30/01", phase: true, priority: "ALTA", note: "TFA, CFU" },
+          { id: "3.0.1", name: "Intervista Ufficio Form. Insegnanti", wp: "WP03", deps: [], duration: 5, critical: false, owner: "PM + SS", start: "26/01", end: "30/01", priority: "ALTA", note: "TFA sostegno, 30/36/60 CFU" },
+          { id: "3.1", name: "SETUP + LEAD FI", wp: "WP03", deps: ["3.0.1"], duration: 25, critical: true, owner: "SS", start: "02/02", end: "06/03", phase: true, priority: "CRITICA" },
+          { id: "3.1.1", name: "Clonazione da WP02 (75%)", wp: "WP03", deps: [], duration: 3, critical: false, owner: "SS", start: "02/02", end: "04/02", priority: "MEDIA" },
+          { id: "3.1.2", name: "Struttura Lead FI", wp: "WP03", deps: ["3.1.1"], duration: 4, critical: true, owner: "SS", start: "05/02", end: "10/02", priority: "CRITICA" },
+          { id: "3.1.3", name: "Campi TFA", wp: "WP03", deps: ["3.1.2"], duration: 4, critical: false, owner: "SS", start: "11/02", end: "16/02", priority: "ALTA" },
+          { id: "3.1.4", name: "Campi CFU (30/36/60)", wp: "WP03", deps: ["3.1.3"], duration: 2, critical: false, owner: "SS", start: "17/02", end: "18/02", priority: "ALTA" },
+          { id: "3.1.5", name: "Modulo classi concorso", wp: "WP03", deps: [], duration: 2, critical: false, owner: "-", start: "19/02", end: "20/02", rf: true, note: "Requisito funzionale" },
+          { id: "3.1.6", name: "Modulo custom FI_Candidacies", wp: "WP03", deps: ["3.1.4"], duration: 3, critical: false, owner: "SS", start: "23/02", end: "25/02", priority: "ALTA" },
+          { id: "3.1.7", name: "Interfaccia graduatorie", wp: "WP03", deps: [], duration: 3, critical: false, owner: "-", start: "26/02", end: "02/03", rf: true, note: "Requisito funzionale" },
+          { id: "3.1.8", name: "Tracciamento Idonei non ammessi", wp: "WP03", deps: [], duration: 4, critical: false, owner: "-", start: "03/03", end: "06/03", rf: true, note: "Requisito funzionale" },
+          { id: "3.2", name: "WORKFLOW + ESSE3", wp: "WP03", deps: ["3.1.5"], duration: 20, critical: true, owner: "SS/DEV", start: "09/03", end: "03/04", phase: true, priority: "CRITICA" },
+          { id: "3.2.1", name: "Workflow Procedure concorsuali", wp: "WP03", deps: [], duration: 3, critical: false, owner: "-", start: "09/03", end: "11/03", rf: true, note: "Requisito funzionale" },
+          { id: "3.2.2", name: "Gestione parallela più concorsi", wp: "WP03", deps: [], duration: 2, critical: false, owner: "-", start: "12/03", end: "13/03", rf: true, note: "Requisito funzionale" },
+          { id: "3.2.3", name: "Workflow assegnazione", wp: "WP03", deps: [], duration: 3, critical: false, owner: "SS", start: "16/03", end: "18/03", priority: "ALTA" },
+          { id: "3.2.4", name: "Workflow conversione", wp: "WP03", deps: ["3.2.1"], duration: 5, critical: true, owner: "SS", start: "19/03", end: "25/03", priority: "CRITICA" },
+          { id: "3.2.5", name: "Integrazione ESSE3 Concorsi", wp: "WP03", deps: ["3.2.2"], duration: 5, critical: true, owner: "DEV", start: "26/03", end: "01/04", priority: "CRITICA" },
+          { id: "3.2.6", name: "App presenze custom", wp: "WP03", deps: [], duration: 2, critical: false, owner: "-", start: "02/04", end: "03/04", rf: true, rfTbc: true, note: "Requisito funzionale TBC" },
+          { id: "3.3", name: "DASHBOARD + TEST", wp: "WP03", deps: ["3.2.3"], duration: 8, critical: true, owner: "SS/DEV", start: "06/04", end: "15/04", phase: true, priority: "CRITICA" },
+          { id: "3.3.1", name: "Dashboard FI + Report", wp: "WP03", deps: [], duration: 2, critical: false, owner: "SS", start: "06/04", end: "07/04", priority: "ALTA" },
+          { id: "3.3.2", name: "Export commissione", wp: "WP03", deps: [], duration: 2, critical: false, owner: "-", start: "08/04", end: "09/04", rf: true, note: "Requisito funzionale" },
+          { id: "3.3.3", name: "Test e2e ESSE3", wp: "WP03", deps: ["3.3.1"], duration: 2, critical: true, owner: "DEV", start: "10/04", end: "13/04", priority: "CRITICA" },
+          { id: "3.3.4", name: "UAT con Ufficio FI", wp: "WP03", deps: ["3.3.2"], duration: 2, critical: true, owner: "PM + FI", start: "14/04", end: "15/04", priority: "CRITICA" },
+          { id: "3.4", name: "✓ WP03 FI Completato", wp: "WP03", deps: ["3.3.3"], duration: 0, critical: true, owner: "PM", start: "15/04", end: "15/04", milestone: true },
 
-          // WP04 - CLA
-          { id: "4.0", name: "Intervista Stakeholder", wp: "WP04", deps: ["WP03"], duration: 3, critical: true, owner: "PM + SS", start: "06/04", end: "08/04", phase: true, desc: "⚠️ PRIORITÀ ALTA" },
-          { id: "4.0.1", name: "Intervista CLA - Sessione 1", wp: "WP04", deps: [], duration: 1, critical: true, owner: "PM + SS", start: "06/04", end: "06/04", desc: "Corsi lingua, certificazioni" },
-          { id: "4.0.2", name: "Intervista CLA - Sessione 2", wp: "WP04", deps: ["4.0.1"], duration: 1, critical: true, owner: "PM + SS", start: "07/04", end: "07/04", desc: "Workflow, requisiti" },
-          { id: "4.0.3", name: "Consolidamento requisiti", wp: "WP04", deps: ["4.0.2"], duration: 1, critical: false, owner: "PM", start: "08/04", end: "08/04", desc: "E-commerce = OUT OF SCOPE" },
-          { id: "4.1", name: "Setup + Lead CLA", wp: "WP04", deps: ["4.0.3"], duration: 6, critical: true, owner: "SS", start: "09/04", end: "14/04", phase: true, desc: "" },
-          { id: "4.1.1", name: "Clonazione da WP02 (65%)", wp: "WP04", deps: [], duration: 1, critical: false, owner: "SS", start: "09/04", end: "09/04", desc: "" },
-          { id: "4.1.2", name: "Struttura Lead CLA", wp: "WP04", deps: ["4.1.1"], duration: 1, critical: true, owner: "SS", start: "10/04", end: "10/04", desc: "" },
-          { id: "4.1.3", name: "Campi corsi lingua", wp: "WP04", deps: ["4.1.2"], duration: 1, critical: false, owner: "SS", start: "13/04", end: "13/04", desc: "" },
-          { id: "4.1.4", name: "Campi certificazioni", wp: "WP04", deps: ["4.1.3"], duration: 1, critical: false, owner: "SS", start: "14/04", end: "14/04", desc: "" },
-          { id: "4.2", name: "Struttura Corsi", wp: "WP04", deps: ["4.1.4"], duration: 3, critical: false, owner: "SS", start: "15/04", end: "17/04", phase: true, desc: "" },
-          { id: "4.2.1", name: "Modulo Corsi Lingua", wp: "WP04", deps: [], duration: 1, critical: false, owner: "SS", start: "15/04", end: "15/04", desc: "" },
-          { id: "4.2.2", name: "Modulo Certificazioni", wp: "WP04", deps: ["4.2.1"], duration: 1, critical: false, owner: "SS", start: "16/04", end: "16/04", desc: "" },
-          { id: "4.2.3", name: "Relazioni Lead-Corso-Cert", wp: "WP04", deps: ["4.2.2"], duration: 1, critical: false, owner: "SS", start: "17/04", end: "17/04", desc: "" },
-          { id: "4.3", name: "Workflow + Dashboard", wp: "WP04", deps: ["4.2.3"], duration: 4, critical: true, owner: "SS", start: "20/04", end: "23/04", phase: true, desc: "" },
-          { id: "4.3.1", name: "Workflow assegnazione [riuso]", wp: "WP04", deps: [], duration: 1, critical: false, owner: "SS", start: "20/04", end: "20/04", desc: "" },
-          { id: "4.3.2", name: "Workflow conversione", wp: "WP04", deps: ["4.3.1"], duration: 1, critical: true, owner: "SS", start: "21/04", end: "21/04", desc: "" },
-          { id: "4.3.3", name: "Dashboard CLA", wp: "WP04", deps: ["4.3.2"], duration: 2, critical: false, owner: "SS", start: "22/04", end: "23/04", desc: "" },
-          { id: "4.4", name: "Test + UAT", wp: "WP04", deps: ["4.3.3"], duration: 1, critical: true, owner: "PM + CLA", start: "24/04", end: "24/04", phase: true, desc: "" },
-          { id: "4.4.1", name: "Test e2e + UAT CLA", wp: "WP04", deps: [], duration: 1, critical: true, owner: "PM + CLA", start: "24/04", end: "24/04", desc: "" },
-          { id: "4.5", name: "✓ WP04 CLA Completato", wp: "WP04", deps: ["4.4.1"], duration: 0, critical: true, owner: "PM", start: "24/04", end: "24/04", milestone: true, desc: "" },
+          // === WP04 CLA ===
+          { id: "4.0", name: "INTERVISTA STAKEHOLDER", wp: "WP04", deps: ["WP03"], duration: 5, critical: true, owner: "PM + SS", start: "30/01", end: "03/02", phase: true, priority: "CRITICA", note: "⚠️ PRIORITÀ ALTA" },
+          { id: "4.0.1", name: "Intervista CLA - Sessione 1", wp: "WP04", deps: [], duration: 1, critical: true, owner: "PM + SS", start: "30/01", end: "30/01", priority: "CRITICA", note: "Corsi lingua, certificazioni" },
+          { id: "4.0.2", name: "Intervista CLA - Sessione 2", wp: "WP04", deps: ["4.0.1"], duration: 1, critical: true, owner: "PM + SS", start: "02/02", end: "02/02", priority: "CRITICA", note: "Workflow, requisiti" },
+          { id: "4.0.3", name: "Consolidamento requisiti", wp: "WP04", deps: ["4.0.2"], duration: 1, critical: false, owner: "PM", start: "03/02", end: "03/02", priority: "ALTA", note: "E-commerce = OUT OF SCOPE" },
+          { id: "4.1", name: "SETUP + LEAD CLA", wp: "WP04", deps: ["4.0.3"], duration: 13, critical: true, owner: "SS", start: "04/02", end: "20/02", phase: true, priority: "CRITICA" },
+          { id: "4.1.1", name: "Clonazione da WP02 (65%)", wp: "WP04", deps: [], duration: 2, critical: false, owner: "SS", start: "04/02", end: "05/02", priority: "MEDIA" },
+          { id: "4.1.2", name: "Struttura Lead CLA", wp: "WP04", deps: ["4.1.1"], duration: 5, critical: true, owner: "SS", start: "06/02", end: "12/02", priority: "CRITICA" },
+          { id: "4.1.3", name: "Campi corsi lingua", wp: "WP04", deps: ["4.1.2"], duration: 2, critical: false, owner: "SS", start: "13/02", end: "16/02", priority: "ALTA" },
+          { id: "4.1.4", name: "Campi contatto genitore", wp: "WP04", deps: [], duration: 2, critical: false, owner: "-", start: "17/02", end: "18/02", rf: true, note: "Requisito funzionale" },
+          { id: "4.1.5", name: "Campi certificazioni", wp: "WP04", deps: ["4.1.3"], duration: 2, critical: false, owner: "SS", start: "19/02", end: "20/02", priority: "ALTA" },
+          { id: "4.2", name: "STRUTTURA CORSI", wp: "WP04", deps: ["4.1.4"], duration: 10, critical: false, owner: "SS", start: "23/02", end: "06/03", phase: true, priority: "ALTA" },
+          { id: "4.2.1", name: "Modulo Corsi Lingua", wp: "WP04", deps: [], duration: 3, critical: false, owner: "SS", start: "23/02", end: "25/02", priority: "ALTA" },
+          { id: "4.2.2", name: "Modulo categorie prodotto", wp: "WP04", deps: [], duration: 2, critical: false, owner: "-", start: "26/02", end: "27/02", rf: true, note: "Requisito funzionale" },
+          { id: "4.2.3", name: "Modulo genitori", wp: "WP04", deps: [], duration: 2, critical: false, owner: "-", start: "02/03", end: "03/03", rf: true, note: "Requisito funzionale" },
+          { id: "4.2.4", name: "Modulo Certificazioni", wp: "WP04", deps: ["4.2.1"], duration: 2, critical: false, owner: "SS", start: "04/03", end: "05/03", priority: "ALTA" },
+          { id: "4.2.5", name: "Modulo Aziende e Istituzioni", wp: "WP04", deps: [], duration: 1, critical: false, owner: "-", start: "06/03", end: "06/03", rf: true, note: "Requisito funzionale" },
+          { id: "4.2.6", name: "Relazioni Lead-Corso-Cert", wp: "WP04", deps: ["4.2.2"], duration: 1, critical: false, owner: "SS", start: "06/03", end: "06/03", priority: "MEDIA" },
+          { id: "4.3", name: "WORKFLOW + INTEGRAZIONI", wp: "WP04", deps: ["4.2.3"], duration: 20, critical: true, owner: "SS", start: "09/03", end: "03/04", phase: true, priority: "CRITICA" },
+          { id: "4.3.1", name: "Blueprint dedicato Lead CLA", wp: "WP04", deps: [], duration: 4, critical: false, owner: "SS", start: "09/03", end: "12/03", priority: "ALTA" },
+          { id: "4.3.2", name: "Integrazione coupon", wp: "WP04", deps: [], duration: 1, critical: false, owner: "-", start: "13/03", end: "13/03", rf: true, rfTbc: true, note: "Requisito funzionale TBC" },
+          { id: "4.3.3", name: "Form principale", wp: "WP04", deps: [], duration: 1, critical: false, owner: "-", start: "16/03", end: "16/03", rf: true, note: "Requisito funzionale" },
+          { id: "4.3.4", name: "Form agevolazione matricole", wp: "WP04", deps: [], duration: 1, critical: false, owner: "-", start: "17/03", end: "17/03", rf: true, note: "Requisito funzionale" },
+          { id: "4.3.5", name: "Web-to-lead per form pubblici", wp: "WP04", deps: [], duration: 1, critical: false, owner: "-", start: "18/03", end: "18/03", rf: true, note: "Requisito funzionale" },
+          { id: "4.3.6", name: "Workflow conversione", wp: "WP04", deps: ["4.3.1"], duration: 4, critical: true, owner: "SS", start: "19/03", end: "24/03", priority: "CRITICA" },
+          { id: "4.3.7", name: "Workflow Onboarding docente CLA", wp: "WP04", deps: [], duration: 2, critical: false, owner: "-", start: "25/03", end: "26/03", rf: true, note: "Requisito funzionale" },
+          { id: "4.3.8", name: "Integrazione Zoho Sign", wp: "WP04", deps: [], duration: 1, critical: false, owner: "-", start: "27/03", end: "27/03", rf: true, rfTbc: true, note: "Requisito funzionale TBC" },
+          { id: "4.3.9", name: "Workflow trigger immatricolazione ESSE3", wp: "WP04", deps: [], duration: 2, critical: false, owner: "-", start: "30/03", end: "31/03", rf: true, note: "Requisito funzionale" },
+          { id: "4.3.10", name: "Zoho Backstage per eventi", wp: "WP04", deps: [], duration: 2, critical: false, owner: "-", start: "01/04", end: "02/04", rf: true, rfTbc: true, note: "Requisito funzionale TBC" },
+          { id: "4.3.11", name: "Webhook sync ordini", wp: "WP04", deps: ["4.3.2"], duration: 1, critical: false, owner: "SS", start: "03/04", end: "03/04", priority: "ALTA" },
+          { id: "4.4", name: "DASHBOARD", wp: "WP04", deps: ["4.3.3"], duration: 2, critical: false, owner: "SS", start: "06/04", end: "07/04", phase: true, priority: "ALTA" },
+          { id: "4.4.1", name: "Dashboard CLA", wp: "WP04", deps: [], duration: 2, critical: false, owner: "SS", start: "06/04", end: "07/04", priority: "ALTA" },
+          { id: "4.5", name: "TEST + UAT", wp: "WP04", deps: ["4.4.1"], duration: 6, critical: true, owner: "PM + CLA", start: "08/04", end: "15/04", phase: true, priority: "CRITICA" },
+          { id: "4.5.1", name: "Test e2e + UAT CLA", wp: "WP04", deps: [], duration: 6, critical: true, owner: "PM + CLA", start: "08/04", end: "15/04", priority: "CRITICA" },
+          { id: "4.6", name: "✓ WP04 CLA Completato", wp: "WP04", deps: ["4.5.1"], duration: 0, critical: true, owner: "PM", start: "15/04", end: "15/04", milestone: true },
 
-          // WP06 - Ricerca Dottorati
-          { id: "5.0", name: "Riconferma Stakeholder", wp: "WP06", deps: ["WP04"], duration: 1, critical: false, owner: "PM", start: "27/04", end: "27/04", phase: true, desc: "Validazione scope" },
-          { id: "5.0.1", name: "Call riconferma Uff. Ricerca", wp: "WP06", deps: [], duration: 1, critical: false, owner: "PM", start: "27/04", end: "27/04", desc: "Dottorati, progetti" },
-          { id: "5.1", name: "Setup + Lead Dott", wp: "WP06", deps: ["5.0.1"], duration: 7, critical: true, owner: "SS", start: "28/04", end: "04/05", phase: true, desc: "" },
-          { id: "5.1.1", name: "Clonazione struttura (50%)", wp: "WP06", deps: [], duration: 1, critical: false, owner: "SS", start: "28/04", end: "28/04", desc: "" },
-          { id: "5.1.2", name: "Struttura Lead Dottorati", wp: "WP06", deps: ["5.1.1"], duration: 2, critical: true, owner: "SS", start: "29/04", end: "30/04", desc: "" },
-          { id: "5.1.3", name: "Modulo Dottorandi/Dottori", wp: "WP06", deps: ["5.1.2"], duration: 1, critical: false, owner: "SS", start: "04/05", end: "04/05", desc: "" },
-          { id: "5.2", name: "Progetti Ricerca", wp: "WP06", deps: ["5.1.3"], duration: 4, critical: false, owner: "SS", start: "05/05", end: "08/05", phase: true, desc: "" },
-          { id: "5.2.1", name: "Modulo Progetti Ricerca", wp: "WP06", deps: [], duration: 2, critical: false, owner: "SS", start: "05/05", end: "06/05", desc: "" },
-          { id: "5.2.2", name: "Mentor Program + Relazioni", wp: "WP06", deps: ["5.2.1"], duration: 2, critical: false, owner: "SS", start: "07/05", end: "08/05", desc: "" },
-          { id: "5.3", name: "Workflow + Dashboard", wp: "WP06", deps: ["5.2.2"], duration: 4, critical: true, owner: "SS", start: "11/05", end: "14/05", phase: true, desc: "" },
-          { id: "5.3.1", name: "Workflow ammissione", wp: "WP06", deps: [], duration: 2, critical: true, owner: "SS", start: "11/05", end: "12/05", desc: "" },
-          { id: "5.3.2", name: "Dashboard Ricerca", wp: "WP06", deps: ["5.3.1"], duration: 2, critical: false, owner: "SS", start: "13/05", end: "14/05", desc: "" },
-          { id: "5.4", name: "Test + UAT", wp: "WP06", deps: ["5.3.2"], duration: 1, critical: true, owner: "PM + RIC", start: "15/05", end: "15/05", phase: true, desc: "" },
-          { id: "5.4.1", name: "Test e2e + UAT Ricerca", wp: "WP06", deps: [], duration: 1, critical: true, owner: "PM + RIC", start: "15/05", end: "15/05", desc: "" },
-          { id: "5.5", name: "✓ WP06 Ricerca Completato", wp: "WP06", deps: ["5.4.1"], duration: 0, critical: true, owner: "PM", start: "15/05", end: "15/05", milestone: true, desc: "" },
+          // === WP05 HR ===
+          { id: "5.0", name: "RICONFERMA STAKEHOLDER", wp: "WP05", deps: ["WP01"], duration: 1, critical: false, owner: "PM", start: "10/02", end: "10/02", phase: true, priority: "MEDIA", note: "//WP03/04 parallelo" },
+          { id: "5.0.1", name: "Call riconferma Uff. HR", wp: "WP05", deps: [], duration: 1, critical: false, owner: "PM", start: "10/02", end: "10/02", priority: "MEDIA", note: "Docenti, PTA, Contratti" },
+          { id: "5.1", name: "SETUP + PERSONALE", wp: "WP05", deps: ["5.0.1"], duration: 23, critical: true, owner: "SS", start: "11/02", end: "13/03", phase: true, priority: "CRITICA" },
+          { id: "5.1.1", name: "Struttura Personale Docente", wp: "WP05", deps: [], duration: 11, critical: true, owner: "SS", start: "11/02", end: "25/02", priority: "CRITICA" },
+          { id: "5.1.2", name: "Struttura PTA", wp: "WP05", deps: ["5.1.1"], duration: 5, critical: false, owner: "SS", start: "26/02", end: "04/03", priority: "ALTA" },
+          { id: "5.1.3", name: "Relazioni Docenti-Corsi", wp: "WP05", deps: ["5.1.2"], duration: 5, critical: false, owner: "SS", start: "05/03", end: "11/03", priority: "ALTA" },
+          { id: "5.1.4", name: "Documents/Workdrive", wp: "WP05", deps: [], duration: 1, critical: false, owner: "-", start: "12/03", end: "12/03", rf: true, note: "Requisito funzionale" },
+          { id: "5.1.5", name: "Generazione automatica lettere", wp: "WP05", deps: [], duration: 1, critical: false, owner: "-", start: "13/03", end: "13/03", rf: true, note: "Requisito funzionale" },
+          { id: "5.2", name: "CONTRATTI + WORKFLOW", wp: "WP05", deps: ["5.1.3"], duration: 20, critical: false, owner: "SS", start: "16/03", end: "10/04", phase: true, priority: "ALTA" },
+          { id: "5.2.1", name: "Modulo Contratti HR", wp: "WP05", deps: [], duration: 10, critical: false, owner: "SS", start: "16/03", end: "27/03", priority: "ALTA", note: "Gestito in CRM" },
+          { id: "5.2.2", name: "Zoho Sign", wp: "WP05", deps: [], duration: 2, critical: false, owner: "-", start: "30/03", end: "31/03", rf: true, rfTbc: true, note: "Requisito funzionale TBC" },
+          { id: "5.2.3", name: "Workflow scadenze contratti", wp: "WP05", deps: ["5.2.1"], duration: 8, critical: false, owner: "SS", start: "01/04", end: "10/04", priority: "ALTA" },
+          { id: "5.3", name: "DASHBOARD + TEST", wp: "WP05", deps: ["5.2.2"], duration: 14, critical: true, owner: "PM + HR", start: "13/04", end: "30/04", phase: true, priority: "CRITICA" },
+          { id: "5.3.1", name: "Dashboard HR + UAT", wp: "WP05", deps: [], duration: 14, critical: true, owner: "PM + HR", start: "13/04", end: "30/04", priority: "CRITICA" },
+          { id: "5.4", name: "✓ WP05 HR Completato", wp: "WP05", deps: ["5.3.1"], duration: 0, critical: true, owner: "PM", start: "30/04", end: "30/04", milestone: true, note: "Zoho Recruit = OUT" },
 
-          // WP07 - Protocolli
-          { id: "6.0", name: "Riconferma Stakeholder", wp: "WP07", deps: ["WP05"], duration: 1, critical: false, owner: "PM", start: "18/05", end: "18/05", phase: true, desc: "//WP07 parallelo" },
-          { id: "6.0.1", name: "Call riconferma Protocolli", wp: "WP07", deps: [], duration: 1, critical: false, owner: "PM", start: "18/05", end: "18/05", desc: "Alert, workflow" },
-          { id: "6.1", name: "Setup + Modulo", wp: "WP07", deps: ["6.0.1"], duration: 4, critical: true, owner: "SS", start: "19/05", end: "22/05", phase: true, desc: "" },
-          { id: "6.1.1", name: "Struttura Protocolli di Intesa", wp: "WP07", deps: [], duration: 2, critical: true, owner: "SS", start: "19/05", end: "20/05", desc: "" },
-          { id: "6.1.2", name: "Campi + Relazioni Enti", wp: "WP07", deps: ["6.1.1"], duration: 2, critical: false, owner: "SS", start: "21/05", end: "22/05", desc: "" },
-          { id: "6.2", name: "Workflow Scadenze", wp: "WP07", deps: ["6.1.2"], duration: 3, critical: true, owner: "SS", start: "25/05", end: "27/05", phase: true, desc: "" },
-          { id: "6.2.1", name: "Alert 30gg + 7gg scadenza", wp: "WP07", deps: [], duration: 2, critical: true, owner: "SS", start: "25/05", end: "26/05", desc: "" },
-          { id: "6.2.2", name: "Workflow rinnovo", wp: "WP07", deps: ["6.2.1"], duration: 1, critical: false, owner: "SS", start: "27/05", end: "27/05", desc: "" },
-          { id: "6.3", name: "Dashboard + Test", wp: "WP07", deps: ["6.2.2"], duration: 2, critical: true, owner: "PM + PROT", start: "28/05", end: "29/05", phase: true, desc: "" },
-          { id: "6.3.1", name: "Dashboard + UAT", wp: "WP07", deps: [], duration: 2, critical: true, owner: "PM + PROT", start: "28/05", end: "29/05", desc: "" },
-          { id: "6.4", name: "✓ WP07 Protocolli Completato", wp: "WP07", deps: ["6.3.1"], duration: 0, critical: true, owner: "PM", start: "29/05", end: "29/05", milestone: true, desc: "" },
+          // === WP06 PROTOCOLLI ===
+          { id: "6.0", name: "RICONFERMA STAKEHOLDER", wp: "WP06", deps: ["WP05"], duration: 1, critical: false, owner: "PM", start: "20/02", end: "20/02", phase: true, priority: "MEDIA" },
+          { id: "6.0.1", name: "Call riconferma Protocolli", wp: "WP06", deps: [], duration: 1, critical: false, owner: "PM", start: "20/02", end: "20/02", priority: "MEDIA", note: "Alert, workflow" },
+          { id: "6.1", name: "SETUP + MODULO", wp: "WP06", deps: ["6.0.1"], duration: 26, critical: true, owner: "SS", start: "23/02", end: "20/03", phase: true, priority: "CRITICA" },
+          { id: "6.1.1", name: "Struttura Protocolli di Intesa", wp: "WP06", deps: [], duration: 12, critical: true, owner: "SS", start: "23/02", end: "06/03", priority: "CRITICA" },
+          { id: "6.1.2", name: "Campi + Relazioni Enti", wp: "WP06", deps: ["6.1.1"], duration: 12, critical: false, owner: "SS", start: "09/03", end: "20/03", priority: "ALTA" },
+          { id: "6.2", name: "WORKFLOW SCADENZE", wp: "WP06", deps: ["6.1.2"], duration: 26, critical: true, owner: "SS", start: "23/03", end: "17/04", phase: true, priority: "CRITICA" },
+          { id: "6.2.1", name: "Alert 30gg + 7gg scadenza", wp: "WP06", deps: [], duration: 12, critical: true, owner: "SS", start: "23/03", end: "03/04", priority: "CRITICA" },
+          { id: "6.2.2", name: "Workflow rinnovo", wp: "WP06", deps: ["6.2.1"], duration: 12, critical: false, owner: "SS", start: "06/04", end: "17/04", priority: "ALTA" },
+          { id: "6.3", name: "DASHBOARD + TEST", wp: "WP06", deps: ["6.2.2"], duration: 19, critical: true, owner: "PM + PROT", start: "20/04", end: "08/05", phase: true, priority: "CRITICA" },
+          { id: "6.3.1", name: "Dashboard + UAT", wp: "WP06", deps: [], duration: 19, critical: true, owner: "PM + PROT", start: "20/04", end: "08/05", priority: "CRITICA" },
+          { id: "6.4", name: "✓ WP06 Protocolli Completato", wp: "WP06", deps: ["6.3.1"], duration: 0, critical: true, owner: "PM", start: "08/05", end: "08/05", milestone: true },
 
-          // WP08 - Convenzioni
-          { id: "7.0", name: "Riconferma Stakeholder", wp: "WP08", deps: ["WP05"], duration: 1, critical: false, owner: "PM", start: "18/05", end: "18/05", phase: true, desc: "//WP06 parallelo" },
-          { id: "7.0.1", name: "Call riconferma Convenzioni", wp: "WP08", deps: [], duration: 1, critical: false, owner: "PM", start: "18/05", end: "18/05", desc: "Riuso WP06" },
-          { id: "7.1", name: "Setup + Modulo", wp: "WP08", deps: ["7.0.1"], duration: 4, critical: true, owner: "SS", start: "19/05", end: "22/05", phase: true, desc: "" },
-          { id: "7.1.1", name: "Clonazione da WP06 (80%)", wp: "WP08", deps: [], duration: 1, critical: false, owner: "SS", start: "19/05", end: "19/05", desc: "" },
-          { id: "7.1.2", name: "Struttura Convenzioni", wp: "WP08", deps: ["7.1.1"], duration: 2, critical: true, owner: "SS", start: "20/05", end: "21/05", desc: "" },
-          { id: "7.1.3", name: "Campi tirocini/stage", wp: "WP08", deps: ["7.1.2"], duration: 1, critical: false, owner: "SS", start: "22/05", end: "22/05", desc: "" },
-          { id: "7.2", name: "Workflow [Clone WP06]", wp: "WP08", deps: ["7.1.3"], duration: 3, critical: false, owner: "SS", start: "25/05", end: "27/05", phase: true, desc: "" },
-          { id: "7.2.1", name: "Alert scadenze [clone]", wp: "WP08", deps: [], duration: 2, critical: false, owner: "SS", start: "25/05", end: "26/05", desc: "" },
-          { id: "7.2.2", name: "Workflow rinnovo", wp: "WP08", deps: ["7.2.1"], duration: 1, critical: false, owner: "SS", start: "27/05", end: "27/05", desc: "" },
-          { id: "7.3", name: "Dashboard + Test", wp: "WP08", deps: ["7.2.2"], duration: 2, critical: true, owner: "PM + CONV", start: "28/05", end: "29/05", phase: true, desc: "" },
-          { id: "7.3.1", name: "Dashboard + UAT", wp: "WP08", deps: [], duration: 2, critical: true, owner: "PM + CONV", start: "28/05", end: "29/05", desc: "" },
-          { id: "7.4", name: "✓ WP08 Convenzioni Completato", wp: "WP08", deps: ["7.3.1"], duration: 0, critical: true, owner: "PM", start: "29/05", end: "29/05", milestone: true, desc: "" },
+          // === WP07 PLACEMENT ===
+          { id: "7.0", name: "INTERVISTA STAKEHOLDER", wp: "WP07", deps: ["WP05", "WP06"], duration: 2, critical: false, owner: "PM + SS", start: "02/03", end: "03/03", phase: true, priority: "ALTA", note: "Tirocini, LinkedIn" },
+          { id: "7.0.1", name: "Intervista Placement - Sess.1", wp: "WP07", deps: [], duration: 1, critical: false, owner: "PM + SS", start: "02/03", end: "02/03", priority: "ALTA", note: "Tirocini, candidature" },
+          { id: "7.0.2", name: "Intervista Placement - Sess.2", wp: "WP07", deps: ["7.0.1"], duration: 1, critical: false, owner: "PM + SS", start: "03/03", end: "03/03", priority: "ALTA", note: "LinkedIn: come fanno ora" },
+          { id: "7.1", name: "SETUP + TIROCINI", wp: "WP07", deps: ["7.0.2"], duration: 23, critical: true, owner: "SS", start: "04/03", end: "03/04", phase: true, priority: "CRITICA" },
+          { id: "7.1.1", name: "Struttura Tirocini curr/extra", wp: "WP07", deps: [], duration: 10, critical: true, owner: "SS", start: "04/03", end: "17/03", priority: "CRITICA" },
+          { id: "7.1.2", name: "Automazione questionari", wp: "WP07", deps: [], duration: 2, critical: false, owner: "-", start: "18/03", end: "19/03", rf: true, note: "Requisito funzionale" },
+          { id: "7.1.3", name: "Gestione codici opportunità", wp: "WP07", deps: [], duration: 1, critical: false, owner: "-", start: "20/03", end: "20/03", rf: true, note: "Requisito funzionale" },
+          { id: "7.1.4", name: "Pannello Placement in scheda studente", wp: "WP07", deps: [], duration: 2, critical: false, owner: "-", start: "23/03", end: "24/03", rf: true, note: "Requisito funzionale" },
+          { id: "7.1.5", name: "Modulo Candidature", wp: "WP07", deps: ["7.1.1"], duration: 5, critical: false, owner: "SS", start: "25/03", end: "31/03", priority: "ALTA" },
+          { id: "7.1.6", name: "Modulo Aziende", wp: "WP07", deps: [], duration: 3, critical: false, owner: "-", start: "01/04", end: "03/04", rf: true, note: "Requisito funzionale" },
+          { id: "7.2", name: "LINKEDIN ANALISI AS-IS", wp: "WP07", deps: ["7.1.2"], duration: 5, critical: false, owner: "SS", start: "06/04", end: "10/04", phase: true, priority: "ALTA" },
+          { id: "7.2.1", name: "Documentazione processo attuale LinkedIn", wp: "WP07", deps: [], duration: 5, critical: false, owner: "SS", start: "06/04", end: "10/04", priority: "ALTA", note: "Come usano LinkedIn ora" },
+          { id: "7.3", name: "WORKFLOW + DASHBOARD", wp: "WP07", deps: ["7.2.1"], duration: 10, critical: true, owner: "SS", start: "13/04", end: "24/04", phase: true, priority: "CRITICA" },
+          { id: "7.3.1", name: "Workflow candidatura->colloquio", wp: "WP07", deps: [], duration: 5, critical: true, owner: "SS", start: "13/04", end: "17/04", priority: "CRITICA" },
+          { id: "7.3.2", name: "Dashboard Placement", wp: "WP07", deps: ["7.3.1"], duration: 5, critical: false, owner: "SS", start: "20/04", end: "24/04", priority: "ALTA" },
+          { id: "7.4", name: "TEST + UAT", wp: "WP07", deps: ["7.3.2"], duration: 10, critical: true, owner: "PM + PLA", start: "27/04", end: "08/05", phase: true, priority: "CRITICA" },
+          { id: "7.4.1", name: "Test e2e + UAT Placement", wp: "WP07", deps: [], duration: 10, critical: true, owner: "PM + PLA", start: "27/04", end: "08/05", priority: "CRITICA" },
+          { id: "7.5", name: "✓ WP07 Placement Completato", wp: "WP07", deps: ["7.4.1"], duration: 0, critical: true, owner: "PM", start: "08/05", end: "08/05", milestone: true },
 
-          // WP09 - Placement
-          { id: "8.0", name: "Intervista Stakeholder", wp: "WP09", deps: ["WP06", "WP07"], duration: 2, critical: false, owner: "PM + SS", start: "01/06", end: "02/06", phase: true, desc: "//WP09 parallelo" },
-          { id: "8.0.1", name: "Intervista Placement - Sess.1", wp: "WP09", deps: [], duration: 1, critical: false, owner: "PM + SS", start: "01/06", end: "01/06", desc: "Tirocini, candidature" },
-          { id: "8.0.2", name: "Intervista Placement - Sess.2", wp: "WP09", deps: ["8.0.1"], duration: 1, critical: false, owner: "PM + SS", start: "02/06", end: "02/06", desc: "LinkedIn: come fanno ora" },
-          { id: "8.1", name: "Setup + Tirocini", wp: "WP09", deps: ["8.0.2"], duration: 3, critical: true, owner: "SS", start: "03/06", end: "05/06", phase: true, desc: "" },
-          { id: "8.1.1", name: "Struttura Tirocini curr/extra", wp: "WP09", deps: [], duration: 2, critical: true, owner: "SS", start: "03/06", end: "04/06", desc: "" },
-          { id: "8.1.2", name: "Modulo Candidature", wp: "WP09", deps: ["8.1.1"], duration: 1, critical: false, owner: "SS", start: "05/06", end: "05/06", desc: "" },
-          { id: "8.2", name: "LinkedIn Analisi AS-IS", wp: "WP09", deps: ["8.1.2"], duration: 1, critical: false, owner: "SS", start: "08/06", end: "08/06", phase: true, desc: "" },
-          { id: "8.2.1", name: "Documentazione processo attuale", wp: "WP09", deps: [], duration: 1, critical: false, owner: "SS", start: "08/06", end: "08/06", desc: "Come usano LinkedIn ora" },
-          { id: "8.3", name: "Workflow + Dashboard", wp: "WP09", deps: ["8.2.1"], duration: 3, critical: true, owner: "SS", start: "09/06", end: "11/06", phase: true, desc: "" },
-          { id: "8.3.1", name: "Workflow candidatura->colloquio", wp: "WP09", deps: [], duration: 2, critical: true, owner: "SS", start: "09/06", end: "10/06", desc: "" },
-          { id: "8.3.2", name: "Dashboard Placement", wp: "WP09", deps: ["8.3.1"], duration: 1, critical: false, owner: "SS", start: "11/06", end: "11/06", desc: "" },
-          { id: "8.4", name: "Test + UAT", wp: "WP09", deps: ["8.3.2"], duration: 1, critical: true, owner: "PM + PLA", start: "12/06", end: "12/06", phase: true, desc: "" },
-          { id: "8.4.1", name: "Test e2e + UAT Placement", wp: "WP09", deps: [], duration: 1, critical: true, owner: "PM + PLA", start: "12/06", end: "12/06", desc: "" },
-          { id: "8.5", name: "✓ WP09 Placement Completato", wp: "WP09", deps: ["8.4.1"], duration: 0, critical: true, owner: "PM", start: "12/06", end: "12/06", milestone: true, desc: "" },
+          // === WP08 RICERCA DOTTORATI ===
+          { id: "8.0", name: "RICONFERMA STAKEHOLDER", wp: "WP08", deps: ["WP07"], duration: 1, critical: false, owner: "PM", start: "09/03", end: "09/03", phase: true, priority: "MEDIA", note: "Validazione scope" },
+          { id: "8.0.1", name: "Call riconferma Uff. Ricerca", wp: "WP08", deps: [], duration: 1, critical: false, owner: "PM", start: "09/03", end: "09/03", priority: "MEDIA", note: "Dottorati, progetti" },
+          { id: "8.1", name: "SETUP + LEAD DOTT", wp: "WP08", deps: ["8.0.1"], duration: 19, critical: true, owner: "SS", start: "10/03", end: "03/04", phase: true, priority: "CRITICA" },
+          { id: "8.1.1", name: "Clonazione struttura (50%)", wp: "WP08", deps: [], duration: 4, critical: false, owner: "SS", start: "10/03", end: "13/03", priority: "MEDIA" },
+          { id: "8.1.2", name: "Struttura Lead Dottorati", wp: "WP08", deps: ["8.1.1"], duration: 5, critical: true, owner: "SS", start: "16/03", end: "20/03", priority: "CRITICA" },
+          { id: "8.1.3", name: "Modulo Dottorandi/Dottori", wp: "WP08", deps: ["8.1.2"], duration: 5, critical: false, owner: "SS", start: "23/03", end: "27/03", priority: "ALTA" },
+          { id: "8.1.4", name: "Zoho Forms standalone", wp: "WP08", deps: [], duration: 2, critical: false, owner: "-", start: "30/03", end: "31/03", rf: true, note: "Requisito funzionale" },
+          { id: "8.1.5", name: "Configurare webhook Forms → CRM", wp: "WP08", deps: [], duration: 2, critical: false, owner: "-", start: "01/04", end: "02/04", rf: true, note: "Requisito funzionale" },
+          { id: "8.1.6", name: "Modulo Organizzazioni (Account)", wp: "WP08", deps: [], duration: 1, critical: false, owner: "-", start: "03/04", end: "03/04", rf: true, note: "Requisito funzionale" },
+          { id: "8.2", name: "PROGETTI RICERCA", wp: "WP08", deps: ["8.1.3"], duration: 10, critical: false, owner: "SS", start: "06/04", end: "17/04", phase: true, priority: "ALTA" },
+          { id: "8.2.1", name: "Modulo Progetti Ricerca", wp: "WP08", deps: [], duration: 5, critical: false, owner: "SS", start: "06/04", end: "10/04", priority: "ALTA" },
+          { id: "8.2.2", name: "Modulo custom Progetti Ricerca", wp: "WP08", deps: [], duration: 2, critical: false, owner: "-", start: "13/04", end: "14/04", rf: true, note: "Requisito funzionale" },
+          { id: "8.2.3", name: "Relazioni Progetti↔Docenti↔Org", wp: "WP08", deps: [], duration: 2, critical: false, owner: "-", start: "15/04", end: "16/04", rf: true, note: "Requisito funzionale" },
+          { id: "8.2.4", name: "Mentor Program + Relazioni", wp: "WP08", deps: ["8.2.1"], duration: 1, critical: false, owner: "SS", start: "17/04", end: "17/04", priority: "MEDIA" },
+          { id: "8.3", name: "WORKFLOW + INTEGRAZIONI", wp: "WP08", deps: ["8.2.2"], duration: 11, critical: true, owner: "SS", start: "20/04", end: "04/05", phase: true, priority: "CRITICA" },
+          { id: "8.3.1", name: "Workflow ammissione", wp: "WP08", deps: [], duration: 5, critical: true, owner: "SS", start: "20/04", end: "24/04", priority: "CRITICA" },
+          { id: "8.3.2", name: "Sync vincitori CRM → ESSE3 API", wp: "WP08", deps: [], duration: 2, critical: false, owner: "-", start: "27/04", end: "28/04", rf: true, note: "Requisito funzionale" },
+          { id: "8.3.3", name: "Logica mentor-mentee (da PLA)", wp: "WP08", deps: [], duration: 2, critical: false, owner: "-", start: "29/04", end: "30/04", rf: true, note: "Requisito funzionale" },
+          { id: "8.3.4", name: "Gestione accordi + Blueprint", wp: "WP08", deps: ["8.3.1"], duration: 1, critical: false, owner: "SS", start: "04/05", end: "04/05", priority: "ALTA" },
+          { id: "8.4", name: "DASHBOARD + TEST", wp: "WP08", deps: ["8.3.2"], duration: 9, critical: true, owner: "SS", start: "05/05", end: "15/05", phase: true, priority: "CRITICA" },
+          { id: "8.4.1", name: "Dashboard Ricerca", wp: "WP08", deps: [], duration: 4, critical: false, owner: "SS", start: "05/05", end: "08/05", priority: "ALTA" },
+          { id: "8.4.2", name: "Test e2e + UAT Ricerca", wp: "WP08", deps: ["8.4.1"], duration: 5, critical: true, owner: "PM + RIC", start: "11/05", end: "15/05", priority: "CRITICA" },
+          { id: "8.5", name: "✓ WP08 Ricerca Completato", wp: "WP08", deps: ["8.4.2"], duration: 0, critical: true, owner: "PM", start: "15/05", end: "15/05", milestone: true },
 
-          // WP10 - Mobilità UMRI
-          { id: "9.0", name: "Intervista Stakeholder", wp: "WP10", deps: ["WP06", "WP07"], duration: 2, critical: false, owner: "PM + SS", start: "01/06", end: "02/06", phase: true, desc: "//WP08 parallelo" },
-          { id: "9.0.1", name: "Intervista UMRI - Sess.1", wp: "WP10", deps: [], duration: 1, critical: false, owner: "PM + SS", start: "01/06", end: "01/06", desc: "Mobilità in/out" },
-          { id: "9.0.2", name: "Intervista UMRI - Sess.2", wp: "WP10", deps: ["9.0.1"], duration: 1, critical: false, owner: "PM + SS", start: "02/06", end: "02/06", desc: "S3, partner" },
-          { id: "9.1", name: "Setup + Mobilità", wp: "WP10", deps: ["9.0.2"], duration: 3, critical: true, owner: "SS", start: "03/06", end: "05/06", phase: true, desc: "" },
-          { id: "9.1.1", name: "Struttura Mobilità Out/In", wp: "WP10", deps: [], duration: 2, critical: true, owner: "SS", start: "03/06", end: "04/06", desc: "" },
-          { id: "9.1.2", name: "Partner Universities", wp: "WP10", deps: ["9.1.1"], duration: 1, critical: false, owner: "SS", start: "05/06", end: "05/06", desc: "" },
-          { id: "9.2", name: "Integrazione S3", wp: "WP10", deps: ["9.1.2"], duration: 3, critical: true, owner: "DEV", start: "08/06", end: "10/06", phase: true, desc: "" },
-          { id: "9.2.1", name: "Analisi API S3", wp: "WP10", deps: [], duration: 1, critical: true, owner: "DEV", start: "08/06", end: "08/06", desc: "Doc da IT UNINT" },
-          { id: "9.2.2", name: "Sync read-only S3", wp: "WP10", deps: ["9.2.1"], duration: 2, critical: true, owner: "DEV", start: "09/06", end: "10/06", desc: "" },
-          { id: "9.3", name: "Workflow + Dashboard", wp: "WP10", deps: ["9.2.2"], duration: 1, critical: false, owner: "SS", start: "11/06", end: "11/06", phase: true, desc: "" },
-          { id: "9.3.1", name: "Workflow + Dashboard UMRI", wp: "WP10", deps: [], duration: 1, critical: false, owner: "SS", start: "11/06", end: "11/06", desc: "" },
-          { id: "9.4", name: "Test + UAT", wp: "WP10", deps: ["9.3.1"], duration: 1, critical: true, owner: "PM + UMRI", start: "12/06", end: "12/06", phase: true, desc: "" },
-          { id: "9.4.1", name: "Test e2e + UAT Mobilità", wp: "WP10", deps: [], duration: 1, critical: true, owner: "PM + UMRI", start: "12/06", end: "12/06", desc: "" },
-          { id: "9.5", name: "✓ WP10 UMRI Completato", wp: "WP10", deps: ["9.4.1"], duration: 0, critical: true, owner: "PM", start: "12/06", end: "12/06", milestone: true, desc: "" },
+          // === WP09 MOBILITÀ UMRI ===
+          { id: "9.0", name: "INTERVISTA STAKEHOLDER", wp: "WP09", deps: ["WP07", "WP08"], duration: 2, critical: false, owner: "PM + SS", start: "16/03", end: "17/03", phase: true, priority: "ALTA", note: "Mobilità in/out" },
+          { id: "9.0.1", name: "Intervista UMRI - Sess.1", wp: "WP09", deps: [], duration: 1, critical: false, owner: "PM + SS", start: "16/03", end: "16/03", priority: "ALTA", note: "Mobilità in/out" },
+          { id: "9.0.2", name: "Intervista UMRI - Sess.2", wp: "WP09", deps: ["9.0.1"], duration: 1, critical: false, owner: "PM + SS", start: "17/03", end: "17/03", priority: "ALTA", note: "S3, partner" },
+          { id: "9.1", name: "SETUP + MOBILITÀ", wp: "WP09", deps: ["9.0.2"], duration: 23, critical: true, owner: "SS", start: "18/03", end: "17/04", phase: true, priority: "CRITICA" },
+          { id: "9.1.1", name: "Struttura Mobilità Out/In", wp: "WP09", deps: [], duration: 13, critical: true, owner: "SS", start: "18/03", end: "03/04", priority: "CRITICA" },
+          { id: "9.1.2", name: "Modulo Custom Mobilità", wp: "WP09", deps: [], duration: 2, critical: false, owner: "-", start: "06/04", end: "07/04", rf: true, note: "Requisito funzionale" },
+          { id: "9.1.3", name: "Custom Progetto Mobilità", wp: "WP09", deps: [], duration: 2, critical: false, owner: "-", start: "08/04", end: "09/04", rf: true, note: "Requisito funzionale" },
+          { id: "9.1.4", name: "Zoho Forms nomination incoming", wp: "WP09", deps: [], duration: 2, critical: false, owner: "-", start: "10/04", end: "13/04", rf: true, note: "Requisito funzionale" },
+          { id: "9.1.5", name: "Subform documentazione", wp: "WP09", deps: [], duration: 2, critical: false, owner: "-", start: "14/04", end: "15/04", rf: true, note: "Requisito funzionale" },
+          { id: "9.1.6", name: "Partner Universities", wp: "WP09", deps: ["9.1.1"], duration: 2, critical: false, owner: "SS", start: "16/04", end: "17/04", priority: "ALTA" },
+          { id: "9.2", name: "INTEGRAZIONE S3", wp: "WP09", deps: ["9.1.2"], duration: 10, critical: true, owner: "DEV", start: "20/04", end: "01/05", phase: true, priority: "CRITICA" },
+          { id: "9.2.1", name: "Analisi API S3", wp: "WP09", deps: [], duration: 5, critical: true, owner: "DEV", start: "20/04", end: "24/04", priority: "CRITICA", note: "Doc da IT UNINT" },
+          { id: "9.2.2", name: "Sync read-only S3", wp: "WP09", deps: ["9.2.1"], duration: 5, critical: true, owner: "DEV", start: "27/04", end: "01/05", priority: "CRITICA" },
+          { id: "9.3", name: "WORKFLOW + DASHBOARD", wp: "WP09", deps: ["9.2.2"], duration: 10, critical: false, owner: "SS", start: "04/05", end: "15/05", phase: true, priority: "ALTA" },
+          { id: "9.3.1", name: "Workflow graduatorie", wp: "WP09", deps: [], duration: 5, critical: false, owner: "SS", start: "04/05", end: "08/05", priority: "ALTA" },
+          { id: "9.3.2", name: "Workflows automazioni", wp: "WP09", deps: [], duration: 2, critical: false, owner: "-", start: "11/05", end: "12/05", rf: true, note: "Requisito funzionale" },
+          { id: "9.3.3", name: "Dashboard UMRI", wp: "WP09", deps: ["9.3.1"], duration: 3, critical: false, owner: "SS", start: "13/05", end: "15/05", priority: "ALTA" },
+          { id: "9.4", name: "TEST + UAT", wp: "WP09", deps: ["9.3.2"], duration: 5, critical: true, owner: "PM + UMRI", start: "18/05", end: "22/05", phase: true, priority: "CRITICA" },
+          { id: "9.4.1", name: "Test e2e + UAT Mobilità", wp: "WP09", deps: [], duration: 5, critical: true, owner: "PM + UMRI", start: "18/05", end: "22/05", priority: "CRITICA" },
+          { id: "9.5", name: "✓ WP09 UMRI Completato", wp: "WP09", deps: ["9.4.1"], duration: 0, critical: true, owner: "PM", start: "22/05", end: "22/05", milestone: true },
 
-          // WP11 - HR
-          { id: "10.0", name: "Riconferma Stakeholder", wp: "WP11", deps: ["WP08", "WP09"], duration: 1, critical: false, owner: "PM", start: "15/06", end: "15/06", phase: true, desc: "//WP11 parallelo" },
-          { id: "10.0.1", name: "Call riconferma Uff. HR", wp: "WP11", deps: [], duration: 1, critical: false, owner: "PM", start: "15/06", end: "15/06", desc: "Docenti, PTA, Contratti" },
-          { id: "10.1", name: "Setup + Personale", wp: "WP11", deps: ["10.0.1"], duration: 4, critical: true, owner: "SS", start: "16/06", end: "19/06", phase: true, desc: "" },
-          { id: "10.1.1", name: "Struttura Personale Docente", wp: "WP11", deps: [], duration: 2, critical: true, owner: "SS", start: "16/06", end: "17/06", desc: "" },
-          { id: "10.1.2", name: "Struttura PTA", wp: "WP11", deps: ["10.1.1"], duration: 1, critical: false, owner: "SS", start: "18/06", end: "18/06", desc: "" },
-          { id: "10.1.3", name: "Relazioni Docenti-Corsi", wp: "WP11", deps: ["10.1.2"], duration: 1, critical: false, owner: "SS", start: "19/06", end: "19/06", desc: "" },
-          { id: "10.2", name: "Contratti + Workflow", wp: "WP11", deps: ["10.1.3"], duration: 2, critical: false, owner: "SS", start: "22/06", end: "23/06", phase: true, desc: "" },
-          { id: "10.2.1", name: "Modulo Contratti HR", wp: "WP11", deps: [], duration: 1, critical: false, owner: "SS", start: "22/06", end: "22/06", desc: "Gestito in CRM" },
-          { id: "10.2.2", name: "Workflow scadenze contratti", wp: "WP11", deps: ["10.2.1"], duration: 1, critical: false, owner: "SS", start: "23/06", end: "23/06", desc: "" },
-          { id: "10.3", name: "Dashboard + Test", wp: "WP11", deps: ["10.2.2"], duration: 1, critical: true, owner: "PM + HR", start: "24/06", end: "24/06", phase: true, desc: "" },
-          { id: "10.3.1", name: "Dashboard HR + UAT", wp: "WP11", deps: [], duration: 1, critical: true, owner: "PM + HR", start: "24/06", end: "24/06", desc: "" },
-          { id: "10.4", name: "✓ WP11 HR Completato", wp: "WP11", deps: ["10.3.1"], duration: 0, critical: true, owner: "PM", start: "24/06", end: "24/06", milestone: true, desc: "Zoho Recruit = OUT" },
+          // === WP10 CONVENZIONI ===
+          { id: "10.0", name: "RICONFERMA STAKEHOLDER", wp: "WP10", deps: ["WP05"], duration: 1, critical: false, owner: "PM", start: "31/03", end: "31/03", phase: true, priority: "MEDIA", note: "//WP07 parallelo" },
+          { id: "10.0.1", name: "Call riconferma Convenzioni", wp: "WP10", deps: [], duration: 1, critical: false, owner: "PM", start: "31/03", end: "31/03", priority: "MEDIA", note: "Riuso WP06" },
+          { id: "10.1", name: "SETUP + MODULO", wp: "WP10", deps: ["10.0.1"], duration: 23, critical: true, owner: "SS", start: "01/04", end: "01/05", phase: true, priority: "CRITICA" },
+          { id: "10.1.1", name: "Clonazione da WP06 (80%)", wp: "WP10", deps: [], duration: 3, critical: false, owner: "SS", start: "01/04", end: "03/04", priority: "MEDIA" },
+          { id: "10.1.2", name: "Struttura Convenzioni", wp: "WP10", deps: ["10.1.1"], duration: 10, critical: true, owner: "SS", start: "06/04", end: "17/04", priority: "CRITICA" },
+          { id: "10.1.3", name: "Form acquisizione dati partner", wp: "WP10", deps: [], duration: 2, critical: false, owner: "-", start: "20/04", end: "21/04", rf: true, note: "Requisito funzionale" },
+          { id: "10.1.4", name: "Campagne piccole vs massive", wp: "WP10", deps: [], duration: 2, critical: false, owner: "-", start: "22/04", end: "23/04", rf: true, note: "Requisito funzionale" },
+          { id: "10.1.5", name: "Valutare ZeptoMail", wp: "WP10", deps: [], duration: 1, critical: false, owner: "-", start: "24/04", end: "24/04", rf: true, rfTbc: true, note: "Requisito funzionale TBC" },
+          { id: "10.1.6", name: "Campi tirocini/stage", wp: "WP10", deps: ["10.1.2"], duration: 5, critical: false, owner: "SS", start: "27/04", end: "01/05", priority: "ALTA" },
+          { id: "10.2", name: "WORKFLOW [CLONE WP06]", wp: "WP10", deps: ["10.1.3"], duration: 10, critical: false, owner: "SS", start: "04/05", end: "15/05", phase: true, priority: "ALTA" },
+          { id: "10.2.1", name: "Alert scadenze [clone]", wp: "WP10", deps: [], duration: 5, critical: false, owner: "SS", start: "04/05", end: "08/05", priority: "ALTA" },
+          { id: "10.2.2", name: "Workflow rinnovo", wp: "WP10", deps: ["10.2.1"], duration: 5, critical: false, owner: "SS", start: "11/05", end: "15/05", priority: "ALTA" },
+          { id: "10.3", name: "DASHBOARD + TEST", wp: "WP10", deps: ["10.2.2"], duration: 10, critical: true, owner: "PM + CONV", start: "18/05", end: "29/05", phase: true, priority: "CRITICA" },
+          { id: "10.3.1", name: "Dashboard + UAT", wp: "WP10", deps: [], duration: 10, critical: true, owner: "PM + CONV", start: "18/05", end: "29/05", priority: "CRITICA" },
+          { id: "10.4", name: "✓ WP10 Convenzioni Completato", wp: "WP10", deps: ["10.3.1"], duration: 0, critical: true, owner: "PM", start: "29/05", end: "29/05", milestone: true },
 
-          // WP12 - Statistiche
-          { id: "11.0", name: "Riconferma Stakeholder", wp: "WP12", deps: ["WP08", "WP09"], duration: 1, critical: false, owner: "PM", start: "15/06", end: "15/06", phase: true, desc: "//WP10 parallelo" },
-          { id: "11.0.1", name: "Call riconferma Statistiche", wp: "WP12", deps: [], duration: 1, critical: false, owner: "PM", start: "15/06", end: "15/06", desc: "KPI, export Tableau" },
-          { id: "11.1", name: "Setup Analytics", wp: "WP12", deps: ["11.0.1"], duration: 3, critical: true, owner: "SS", start: "16/06", end: "18/06", phase: true, desc: "" },
-          { id: "11.1.1", name: "Configurazione Analytics", wp: "WP12", deps: [], duration: 1, critical: false, owner: "SS", start: "16/06", end: "16/06", desc: "Riuso 60%" },
-          { id: "11.1.2", name: "Definizione KPI", wp: "WP12", deps: ["11.1.1"], duration: 1, critical: false, owner: "SS", start: "17/06", end: "17/06", desc: "" },
-          { id: "11.1.3", name: "Dashboard consolidata", wp: "WP12", deps: ["11.1.2"], duration: 1, critical: true, owner: "SS", start: "18/06", end: "18/06", desc: "" },
-          { id: "11.2", name: "Export Tableau", wp: "WP12", deps: ["11.1.3"], duration: 4, critical: false, owner: "DEV", start: "19/06", end: "22/06", phase: true, desc: "" },
-          { id: "11.2.1", name: "Export JSON/CSV scheduled", wp: "WP12", deps: [], duration: 1, critical: false, owner: "DEV", start: "19/06", end: "19/06", desc: "" },
-          { id: "11.2.2", name: "Mapping dati Tableau", wp: "WP12", deps: ["11.2.1"], duration: 1, critical: false, owner: "DEV", start: "22/06", end: "22/06", desc: "" },
-          { id: "11.3", name: "Test + UAT", wp: "WP12", deps: ["11.2.2"], duration: 2, critical: true, owner: "PM + STAT", start: "23/06", end: "24/06", phase: true, desc: "" },
-          { id: "11.3.1", name: "Test export + validazione", wp: "WP12", deps: [], duration: 1, critical: true, owner: "DEV", start: "23/06", end: "23/06", desc: "" },
-          { id: "11.3.2", name: "UAT Statistiche", wp: "WP12", deps: ["11.3.1"], duration: 1, critical: true, owner: "PM + STAT", start: "24/06", end: "24/06", desc: "" },
-          { id: "11.4", name: "✓ WP12 Statistiche Completato", wp: "WP12", deps: ["11.3.2"], duration: 0, critical: true, owner: "PM", start: "24/06", end: "24/06", milestone: true, desc: "" },
+          // === WP11 STATISTICHE ===
+          { id: "11.0", name: "RICONFERMA STAKEHOLDER", wp: "WP11", deps: ["WP01-10"], duration: 1, critical: false, owner: "PM", start: "02/04", end: "02/04", phase: true, priority: "MEDIA" },
+          { id: "11.0.1", name: "Call riconferma Statistiche", wp: "WP11", deps: [], duration: 1, critical: false, owner: "PM", start: "02/04", end: "02/04", priority: "MEDIA", note: "KPI, export Tableau" },
+          { id: "11.1", name: "SETUP ANALYTICS", wp: "WP11", deps: ["11.0.1"], duration: 36, critical: true, owner: "SS", start: "03/04", end: "08/05", phase: true, priority: "CRITICA" },
+          { id: "11.1.1", name: "Configurazione Analytics", wp: "WP11", deps: [], duration: 15, critical: false, owner: "SS", start: "03/04", end: "17/04", priority: "ALTA", note: "Riuso 60%" },
+          { id: "11.1.2", name: "Definizione KPI", wp: "WP11", deps: ["11.1.1"], duration: 12, critical: false, owner: "SS", start: "20/04", end: "01/05", priority: "ALTA" },
+          { id: "11.1.3", name: "Dashboard consolidata", wp: "WP11", deps: ["11.1.2"], duration: 5, critical: true, owner: "SS", start: "04/05", end: "08/05", priority: "CRITICA" },
+          { id: "11.2", name: "EXPORT TABLEAU", wp: "WP11", deps: ["11.1.3"], duration: 19, critical: false, owner: "DEV", start: "11/05", end: "29/05", phase: true, priority: "ALTA" },
+          { id: "11.2.1", name: "Export JSON/CSV scheduled", wp: "WP11", deps: [], duration: 12, critical: false, owner: "DEV", start: "11/05", end: "22/05", priority: "ALTA" },
+          { id: "11.2.2", name: "Mapping dati Tableau", wp: "WP11", deps: ["11.2.1"], duration: 5, critical: false, owner: "DEV", start: "25/05", end: "29/05", priority: "MEDIA" },
+          { id: "11.3", name: "TEST + UAT", wp: "WP11", deps: ["11.2.2"], duration: 12, critical: true, owner: "PM + STAT", start: "01/06", end: "12/06", phase: true, priority: "CRITICA" },
+          { id: "11.3.1", name: "Test export + validazione", wp: "WP11", deps: [], duration: 5, critical: true, owner: "DEV", start: "01/06", end: "05/06", priority: "CRITICA" },
+          { id: "11.3.2", name: "UAT Statistiche", wp: "WP11", deps: ["11.3.1"], duration: 5, critical: true, owner: "PM + STAT", start: "08/06", end: "12/06", priority: "CRITICA" },
+          { id: "11.4", name: "✓ WP11 Statistiche Completato", wp: "WP11", deps: ["11.3.2"], duration: 0, critical: true, owner: "PM", start: "12/06", end: "12/06", milestone: true },
 
-          // WP15 - SSO + Migrazione
-          { id: "19.0", name: "Kick-off IT UNINT", wp: "WP15", deps: ["WP10", "WP11"], duration: 1, critical: true, owner: "PM + DEV", start: "22/06", end: "22/06", phase: true, desc: "Parallelo a fine WP" },
-          { id: "19.0.1", name: "Kick-off SSO con IT", wp: "WP15", deps: [], duration: 1, critical: true, owner: "PM + DEV", start: "22/06", end: "22/06", desc: "Raccolta req AD" },
-          { id: "19.1", name: "Implementazione SSO", wp: "WP15", deps: ["19.0.1"], duration: 4, critical: true, owner: "DEV", start: "23/06", end: "26/06", phase: true, desc: "" },
-          { id: "19.1.1", name: "Configurazione Zoho SSO", wp: "WP15", deps: [], duration: 1, critical: true, owner: "DEV", start: "23/06", end: "23/06", desc: "SAML/OAuth2" },
-          { id: "19.1.2", name: "Integrazione AD UNINT", wp: "WP15", deps: ["19.1.1"], duration: 2, critical: true, owner: "DEV", start: "24/06", end: "25/06", desc: "" },
-          { id: "19.1.3", name: "Test autenticazione", wp: "WP15", deps: ["19.1.2"], duration: 1, critical: true, owner: "DEV", start: "26/06", end: "26/06", desc: "" },
-          { id: "19.2", name: "Migrazione Dati", wp: "WP15", deps: ["19.0.1"], duration: 4, critical: true, owner: "SS + DEV", start: "23/06", end: "26/06", phase: true, desc: "Parallelo a SSO" },
-          { id: "19.2.1", name: "Mapping dati legacy -> CRM", wp: "WP15", deps: [], duration: 1, critical: true, owner: "SS + DEV", start: "23/06", end: "23/06", desc: "" },
-          { id: "19.2.2", name: "Script migrazione Excel", wp: "WP15", deps: ["19.2.1"], duration: 1, critical: true, owner: "DEV", start: "24/06", end: "24/06", desc: "" },
-          { id: "19.2.3", name: "Migrazione pilota + validazione", wp: "WP15", deps: ["19.2.2"], duration: 1, critical: true, owner: "SS", start: "25/06", end: "25/06", desc: "" },
-          { id: "19.2.4", name: "Migrazione completa", wp: "WP15", deps: ["19.2.3"], duration: 1, critical: true, owner: "DEV", start: "26/06", end: "26/06", desc: "" },
-          { id: "19.3", name: "Test Finale + Go-Live", wp: "WP15", deps: ["19.1.3", "19.2.4"], duration: 2, critical: true, owner: "PM + IT", start: "29/06", end: "30/06", phase: true, desc: "" },
-          { id: "19.3.1", name: "Test e2e SSO + Migrazione", wp: "WP15", deps: [], duration: 1, critical: true, owner: "DEV", start: "29/06", end: "29/06", desc: "" },
-          { id: "19.3.2", name: "UAT finale + Cutover", wp: "WP15", deps: ["19.3.1"], duration: 1, critical: true, owner: "PM + IT", start: "30/06", end: "30/06", desc: "" },
-          { id: "19.4", name: "🚀 GO-LIVE FINALE", wp: "WP15", deps: ["19.3.2"], duration: 0, critical: true, owner: "PM", start: "30/06", end: "30/06", milestone: true, desc: "PROGETTO COMPLETATO" }
+          // === WP12 ANALYTICS ===
+          { id: "12.0", name: "SETUP ANALYTICS AVANZATO", wp: "WP12", deps: ["WP11"], duration: 29, critical: false, owner: "SS", start: "24/04", end: "22/05", phase: true, priority: "ALTA" },
+          { id: "12.0.1", name: "Analytics avanzato cross-WP", wp: "WP12", deps: [], duration: 15, critical: false, owner: "SS", start: "24/04", end: "08/05", priority: "ALTA" },
+          { id: "12.0.2", name: "Report consolidati", wp: "WP12", deps: ["12.0.1"], duration: 12, critical: false, owner: "SS", start: "11/05", end: "22/05", priority: "ALTA" },
+          { id: "12.1", name: "DASHBOARD DIREZIONE", wp: "WP12", deps: ["12.0.2"], duration: 12, critical: true, owner: "SS", start: "25/05", end: "05/06", phase: true, priority: "CRITICA" },
+          { id: "12.1.1", name: "Dashboard Direzione", wp: "WP12", deps: [], duration: 12, critical: true, owner: "SS", start: "25/05", end: "05/06", priority: "CRITICA" },
+          { id: "12.2", name: "TEST + UAT", wp: "WP12", deps: ["12.1.1"], duration: 5, critical: true, owner: "PM", start: "08/06", end: "12/06", phase: true, priority: "CRITICA" },
+          { id: "12.2.1", name: "UAT Analytics", wp: "WP12", deps: [], duration: 5, critical: true, owner: "PM", start: "08/06", end: "12/06", priority: "CRITICA" },
+          { id: "12.3", name: "✓ WP12 Analytics Completato", wp: "WP12", deps: ["12.2.1"], duration: 0, critical: true, owner: "PM", start: "12/06", end: "12/06", milestone: true },
+
+          // === WP17 SSO + MIGRAZIONE ===
+          { id: "17.0", name: "KICK-OFF IT UNINT", wp: "WP17", deps: ["WP10", "WP11"], duration: 1, critical: true, owner: "PM + DEV", start: "22/06", end: "22/06", phase: true, priority: "CRITICA", note: "Parallelo fine WP" },
+          { id: "17.0.1", name: "Kick-off SSO con IT", wp: "WP17", deps: [], duration: 1, critical: true, owner: "PM + DEV", start: "22/06", end: "22/06", priority: "CRITICA", note: "Raccolta req AD" },
+          { id: "17.1", name: "IMPLEMENTAZIONE SSO", wp: "WP17", deps: ["17.0.1"], duration: 4, critical: true, owner: "DEV", start: "23/06", end: "26/06", phase: true, priority: "CRITICA" },
+          { id: "17.1.1", name: "Configurazione Zoho SSO", wp: "WP17", deps: [], duration: 1, critical: true, owner: "DEV", start: "23/06", end: "23/06", priority: "CRITICA", note: "SAML/OAuth2" },
+          { id: "17.1.2", name: "Integrazione AD UNINT", wp: "WP17", deps: ["17.1.1"], duration: 2, critical: true, owner: "DEV", start: "24/06", end: "25/06", priority: "CRITICA" },
+          { id: "17.1.3", name: "Test autenticazione", wp: "WP17", deps: ["17.1.2"], duration: 1, critical: true, owner: "DEV", start: "26/06", end: "26/06", priority: "CRITICA" },
+          { id: "17.2", name: "MIGRAZIONE DATI", wp: "WP17", deps: ["17.0.1"], duration: 4, critical: true, owner: "SS + DEV", start: "23/06", end: "26/06", phase: true, priority: "CRITICA", note: "Parallelo a SSO" },
+          { id: "17.2.1", name: "Mapping dati legacy -> CRM", wp: "WP17", deps: [], duration: 1, critical: true, owner: "SS + DEV + UNINT", start: "23/06", end: "23/06", priority: "CRITICA" },
+          { id: "17.2.2", name: "Script migrazione Excel", wp: "WP17", deps: ["17.2.1"], duration: 1, critical: true, owner: "DEV", start: "24/06", end: "24/06", priority: "CRITICA" },
+          { id: "17.2.3", name: "Migrazione pilota + validazione", wp: "WP17", deps: ["17.2.2"], duration: 1, critical: true, owner: "SS + DEV + UNINT", start: "25/06", end: "25/06", priority: "CRITICA" },
+          { id: "17.2.4", name: "Migrazione completa", wp: "WP17", deps: ["17.2.3"], duration: 1, critical: true, owner: "DEV + UNINT", start: "26/06", end: "26/06", priority: "CRITICA" },
+          { id: "17.3", name: "TEST FINALE + GO-LIVE", wp: "WP17", deps: ["17.1.3", "17.2.4"], duration: 2, critical: true, owner: "PM + IT", start: "29/06", end: "30/06", phase: true, priority: "CRITICA" },
+          { id: "17.3.1", name: "Test e2e SSO + Migrazione", wp: "WP17", deps: [], duration: 1, critical: true, owner: "DEV", start: "29/06", end: "29/06", priority: "CRITICA" },
+          { id: "17.3.2", name: "UAT finale + Cutover", wp: "WP17", deps: ["17.3.1"], duration: 1, critical: true, owner: "PM + IT", start: "30/06", end: "30/06", priority: "CRITICA" },
+          { id: "17.4", name: "🚀 GO-LIVE FINALE", wp: "WP17", deps: ["17.3.2"], duration: 0, critical: true, owner: "PM", start: "30/06", end: "30/06", milestone: true, note: "PROGETTO COMPLETATO" }
         ];
 
-        // ============ REGISTRO RISCHI ============
+        // Rischi
         const risks = [
-          { id: "R1", wp: "WP04", risk: "Requisiti CLA incompleti post-intervista", prob: "MEDIA", impact: "ALTO", mitigation: "Intervista estesa 3gg; documentazione E-commerce per futuro", owner: "PM" },
-          { id: "R2", wp: "WP09", risk: "Integrazione S3 ritardata", prob: "MEDIA", impact: "ALTO", mitigation: "Sync read-only iniziale; richiedere doc API a IT", owner: "DEV" },
-          { id: "R3", wp: "WP15", risk: "SSO ritardato da IT UNINT", prob: "MEDIA", impact: "ALTO", mitigation: "Kick-off anticipato 22/06; fallback login standard", owner: "DEV" },
-          { id: "R4", wp: "WP15", risk: "Migrazione dati incompleta", prob: "MEDIA", impact: "ALTO", mitigation: "Migrazione pilota + validazione; buffer 1gg", owner: "SS" },
-          { id: "R5", wp: "ALL", risk: "Timeline compressa - 3 paralleli", prob: "MEDIA", impact: "MEDIO", mitigation: "Team dedicati; daily standup; escalation rapida", owner: "PM" },
-          { id: "R6", wp: "WP14", risk: "Formazione non assorbita", prob: "MEDIA", impact: "MEDIO", mitigation: "Video tutorial; sessioni post go-live", owner: "UX" },
-          { id: "R7", wp: "WP01", risk: "Slittamento WP01 impatta tutto", prob: "BASSA", impact: "CRITICO", mitigation: "WP01 deadline 31/01 BLOCCANTE", owner: "PM" }
+          { id: "R1", wp: "WP04", risk: "Requisiti CLA incompleti post-intervista", prob: "MEDIA", impact: "ALTO", mitigation: "Intervista estesa 3gg; E-commerce = OUT OF SCOPE", owner: "PM", status: "Aperto" },
+          { id: "R2", wp: "WP09", risk: "Integrazione S3 ritardata", prob: "MEDIA", impact: "ALTO", mitigation: "Sync read-only iniziale; richiedere doc API a IT", owner: "DEV", status: "Aperto" },
+          { id: "R3", wp: "WP03", risk: "Complessità concorsi FI", prob: "MEDIA", impact: "MEDIO", mitigation: "Workflow dedicato; gestione parallela concorsi", owner: "SS", status: "Aperto" },
+          { id: "R4", wp: "WP17", risk: "SSO ritardato da IT UNINT", prob: "MEDIA", impact: "ALTO", mitigation: "Kick-off anticipato 22/06; fallback login standard", owner: "DEV", status: "Aperto" },
+          { id: "R5", wp: "WP17", risk: "Migrazione dati incompleta", prob: "MEDIA", impact: "ALTO", mitigation: "Migrazione pilota + validazione; buffer 1gg", owner: "SS", status: "Aperto" },
+          { id: "R6", wp: "ALL", risk: "WP in parallelo (sovraccarico team)", prob: "MEDIA", impact: "MEDIO", mitigation: "Team dedicati; daily standup; escalation rapida", owner: "PM", status: "Aperto" },
+          { id: "R7", wp: "WP16", risk: "Formazione non assorbita", prob: "MEDIA", impact: "MEDIO", mitigation: "Video tutorial; sessioni refresh post go-live", owner: "UX", status: "Aperto" },
+          { id: "R8", wp: "WP01", risk: "Slittamento WP01 impatta tutto", prob: "BASSA", impact: "CRITICO", mitigation: "WP01 deadline 31/01 BLOCCANTE", owner: "PM", status: "Monitorato" },
+          { id: "R9", wp: "WP14-15", risk: "Scope creep da requisiti TBC", prob: "MEDIA", impact: "MEDIO", mitigation: "Documentare per futuro; non in scope attuale", owner: "PM", status: "Mitigato" }
         ];
 
         const wpColors = {
-          "WP02": "#3B82F6", "WP03": "#8B5CF6", "WP04": "#EC4899", "WP05": "#9CA3AF",
-          "WP06": "#F59E0B", "WP07": "#10B981", "WP08": "#14B8A6", "WP09": "#EF4444",
-          "WP10": "#F97316", "WP11": "#6366F1", "WP12": "#8B5CF6", "WP13": "#64748B",
-          "WP14": "#A855F7", "WP15": "#DC2626"
+          "WP02": "#3B82F6", "WP03": "#8B5CF6", "WP04": "#EC4899", "WP05": "#6366F1",
+          "WP06": "#10B981", "WP07": "#EF4444", "WP08": "#F59E0B", "WP09": "#F97316",
+          "WP10": "#14B8A6", "WP11": "#8B5CF6", "WP12": "#6366F1", "WP17": "#DC2626"
         };
 
-        // ============ COMPONENTE PRINCIPALE ============
+        const wpNames = {
+          "WP02": "Alta Formazione", "WP03": "Form. Insegnanti", "WP04": "CLA", "WP05": "HR",
+          "WP06": "Protocolli", "WP07": "Placement", "WP08": "Ricerca Dottorati", "WP09": "Mobilità UMRI",
+          "WP10": "Convenzioni", "WP11": "Statistiche", "WP12": "Analytics", "WP17": "SSO+Migrazione"
+        };
+
+        // ========== COMPONENTE PRINCIPALE ==========
         function GanttDashboard() {
-          const [selectedWP, setSelectedWP] = useState(null);
           const [selectedActivity, setSelectedActivity] = useState(null);
-          const [viewMode, setViewMode] = useState('roadmap');
-          const [searchTerm, setSearchTerm] = useState('');
           const [highlightCritical, setHighlightCritical] = useState(true);
-          const [showRisks, setShowRisks] = useState(false);
+          const [showRF, setShowRF] = useState(true);
+          const [selectedWP, setSelectedWP] = useState(null);
+          const [viewMode, setViewMode] = useState('flow');
+          const [searchTerm, setSearchTerm] = useState('');
 
           const dependents = useMemo(() => {
             const deps = {};
@@ -270,6 +316,7 @@
 
           const criticalPath = useMemo(() => activities.filter(a => a.critical).map(a => a.id), []);
           const milestones = useMemo(() => activities.filter(a => a.milestone), []);
+          const rfCount = useMemo(() => activities.filter(a => a.rf).length, []);
           
           const filteredActivities = useMemo(() => {
             return activities.filter(act => {
@@ -277,159 +324,376 @@
                 act.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 act.name.toLowerCase().includes(searchTerm.toLowerCase());
               const matchesWP = !selectedWP || act.wp === selectedWP;
-              return matchesSearch && matchesWP;
+              const matchesRF = showRF || !act.rf;
+              return matchesSearch && matchesWP && matchesRF;
             });
-          }, [searchTerm, selectedWP]);
+          }, [searchTerm, selectedWP, showRF]);
 
-          const getActivityById = (id) => activities.find(a => a.id === id);
-
-          // ============ VISTA ROADMAP WP ============
-          const RoadmapView = () => {
-            const months = ["Feb 2026", "Mar 2026", "Apr 2026", "Mag 2026", "Giu 2026"];
-            const activeWPs = workPackages.filter(wp => !wp.tbc && !wp.rolling);
+          // ========== VISTA MAPPA CRITICAL PATH ==========
+          const CriticalPathMap = () => {
+            const criticalActivities = activities.filter(a => a.critical && !a.phase);
+            const nodeWidth = 160;
+            const nodeHeight = 60;
+            const levelGap = 190;
+            const nodeGap = 72;
             
+            const calculateLevels = () => {
+              const levels = {};
+              const getLevel = (id, visited = new Set()) => {
+                if (visited.has(id)) return 0;
+                if (levels[id] !== undefined) return levels[id];
+                visited.add(id);
+                const act = criticalActivities.find(a => a.id === id);
+                if (!act) return 0;
+                const validDeps = act.deps.filter(d => !d.startsWith('WP') && criticalActivities.find(a => a.id === d));
+                if (validDeps.length === 0) { levels[id] = 0; return 0; }
+                const maxDepLevel = Math.max(...validDeps.map(d => getLevel(d, visited)));
+                levels[id] = maxDepLevel + 1;
+                return levels[id];
+              };
+              criticalActivities.forEach(a => getLevel(a.id));
+              return levels;
+            };
+            
+            const levels = calculateLevels();
+            const maxLevel = Math.max(...Object.values(levels), 0);
+            
+            const byLevel = {};
+            criticalActivities.forEach(a => {
+              const lvl = levels[a.id] || 0;
+              if (!byLevel[lvl]) byLevel[lvl] = [];
+              byLevel[lvl].push(a);
+            });
+            
+            const positions = {};
+            Object.keys(byLevel).sort((a, b) => a - b).forEach(lvl => {
+              byLevel[lvl].forEach((a, idx) => {
+                positions[a.id] = { x: parseInt(lvl) * levelGap + 40, y: idx * nodeGap + 40 };
+              });
+            });
+            
+            const svgWidth = (maxLevel + 1) * levelGap + 120;
+            const maxNodesInLevel = Math.max(...Object.values(byLevel).map(arr => arr.length), 1);
+            const svgHeight = maxNodesInLevel * nodeGap + 80;
+
             return (
-              <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
-                <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                  🗺️ Roadmap Work Packages
-                </h3>
-                <div className="overflow-x-auto custom-scrollbar">
-                  <div className="min-w-[900px]">
-                    {/* Header mesi */}
-                    <div className="flex border-b border-slate-200 pb-2 mb-4">
-                      <div className="w-48 flex-shrink-0 font-semibold text-slate-600 text-sm">Work Package</div>
-                      {months.map(m => (
-                        <div key={m} className="flex-1 text-center text-sm font-medium text-slate-500">{m}</div>
-                      ))}
-                    </div>
+              <div className="bg-white rounded-xl border border-slate-200 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-slate-700 flex items-center gap-2">
+                    🔴 Critical Path Map
+                    <span className="text-xs font-normal text-slate-400">({criticalActivities.length} task critici)</span>
+                  </h3>
+                  <div className="text-xs text-slate-500">Clicca sui nodi per vedere predecessori e successori</div>
+                </div>
+                <div className="overflow-auto custom-scrollbar border rounded-lg bg-gradient-to-br from-red-50 to-slate-50" style={{ maxHeight: '500px' }}>
+                  <svg width={svgWidth} height={svgHeight}>
+                    <defs>
+                      <marker id="arrow-cp" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#DC2626" />
+                      </marker>
+                      <marker id="arrow-sel" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#2563EB" />
+                      </marker>
+                      <filter id="glow">
+                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                      </filter>
+                    </defs>
                     
-                    {/* Barre WP */}
-                    {activeWPs.map(wp => {
-                      const startMonth = parseInt(wp.start.split('/')[1]) - 2;
-                      const endMonth = parseInt(wp.end.split('/')[1]) - 2;
-                      const startDay = parseInt(wp.start.split('/')[0]);
-                      const endDay = parseInt(wp.end.split('/')[0]);
+                    {/* Linee */}
+                    {criticalActivities.map(act => 
+                      act.deps.filter(d => !d.startsWith('WP') && positions[d]).map(depId => {
+                        const from = positions[depId];
+                        const to = positions[act.id];
+                        if (!from || !to) return null;
+                        const isHighlighted = selectedActivity && (act.id === selectedActivity || depId === selectedActivity);
+                        return (
+                          <line key={`${depId}-${act.id}`}
+                            x1={from.x + nodeWidth} y1={from.y + nodeHeight / 2}
+                            x2={to.x} y2={to.y + nodeHeight / 2}
+                            stroke={isHighlighted ? "#2563EB" : "#DC2626"}
+                            strokeWidth={isHighlighted ? 3 : 2}
+                            markerEnd={isHighlighted ? "url(#arrow-sel)" : "url(#arrow-cp)"}
+                            opacity={selectedActivity && !isHighlighted ? 0.2 : 0.8}
+                          />
+                        );
+                      })
+                    )}
+                    
+                    {/* Nodi */}
+                    {criticalActivities.map(act => {
+                      const pos = positions[act.id];
+                      if (!pos) return null;
+                      const wpColor = wpColors[act.wp] || "#64748B";
+                      const isSelected = selectedActivity === act.id;
+                      const isPred = selectedActivity && act.deps.includes(selectedActivity);
+                      const isSucc = selectedActivity && dependents[selectedActivity]?.includes(act.id);
                       
-                      const left = (startMonth * 100 / 5) + (startDay / 30 * 20);
-                      const width = ((endMonth - startMonth) * 100 / 5) + ((endDay - startDay) / 30 * 20);
+                      let fill = "#FEE2E2";
+                      let stroke = "#DC2626";
+                      let strokeWidth = 2;
+                      
+                      if (isSelected) { fill = "#DBEAFE"; stroke = "#2563EB"; strokeWidth = 3; }
+                      else if (isPred) { fill = "#D1FAE5"; stroke = "#10B981"; strokeWidth = 2.5; }
+                      else if (isSucc) { fill = "#FEF3C7"; stroke = "#F59E0B"; strokeWidth = 2.5; }
                       
                       return (
-                        <div key={wp.id} className="flex items-center mb-3 group">
-                          <div className="w-48 flex-shrink-0 flex items-center gap-2">
-                            <span className="font-mono font-bold text-sm" style={{ color: wp.color }}>{wp.id}</span>
-                            <span className="text-sm text-slate-600 truncate">{wp.name}</span>
-                          </div>
-                          <div className="flex-1 relative h-8">
-                            <div 
-                              className="absolute h-6 rounded-full flex items-center px-3 cursor-pointer transition-all hover:scale-105 hover:shadow-lg"
-                              style={{ 
-                                left: `${left}%`, 
-                                width: `${Math.max(width, 8)}%`,
-                                backgroundColor: wp.color,
-                                top: '4px'
-                              }}
-                              onClick={() => setSelectedWP(selectedWP === wp.id ? null : wp.id)}
-                            >
-                              <span className="text-white text-xs font-medium truncate">{wp.days}gg</span>
-                              {wp.reuse !== "-" && (
-                                <span className="ml-2 bg-white/30 px-1.5 py-0.5 rounded text-xs text-white">↺{wp.reuse}</span>
-                              )}
-                            </div>
-                            {wp.parallel !== "-" && (
-                              <span className="absolute text-xs text-slate-400 -top-1 right-2">{wp.parallel}</span>
-                            )}
-                          </div>
-                        </div>
+                        <g key={act.id} onClick={() => setSelectedActivity(isSelected ? null : act.id)}
+                          style={{ cursor: 'pointer' }} filter={isSelected ? "url(#glow)" : undefined}>
+                          <rect x={pos.x} y={pos.y} width={nodeWidth} height={nodeHeight}
+                            rx={act.milestone ? 4 : 10} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
+                          <rect x={pos.x} y={pos.y} width={6} height={nodeHeight} rx="4 0 0 4" fill={wpColor} />
+                          <text x={pos.x + 14} y={pos.y + 16} fontSize="10" fontWeight="bold" fill={wpColor}>{act.wp}</text>
+                          <text x={pos.x + nodeWidth - 8} y={pos.y + 16} fontSize="9" textAnchor="end" fill="#6B7280">{act.id}</text>
+                          <text x={pos.x + 12} y={pos.y + 32} fontSize="10" fontWeight="600" fill="#1F2937">
+                            {act.name.length > 20 ? act.name.substring(0, 18) + '...' : act.name}
+                          </text>
+                          <text x={pos.x + 12} y={pos.y + 48} fontSize="9" fill="#6B7280">
+                            {act.start} → {act.end} ({act.duration}gg)
+                          </text>
+                          {act.milestone && <text x={pos.x + nodeWidth - 14} y={pos.y + 48} fontSize="14">🏁</text>}
+                        </g>
                       );
                     })}
-                    
-                    {/* Linea Go-Live */}
-                    <div className="relative h-8 mt-4 border-t border-dashed border-slate-300 pt-4">
-                      <div className="absolute right-0 top-2 flex items-center gap-2">
-                        <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>
-                        <span className="text-sm font-bold text-red-600">GO-LIVE 30/06/2026</span>
-                      </div>
-                    </div>
-                  </div>
+                  </svg>
                 </div>
               </div>
             );
           };
 
-          // ============ VISTA DETTAGLIO ATTIVITÀ ============
-          const ActivitiesView = () => (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="overflow-auto custom-scrollbar" style={{ maxHeight: '500px' }}>
-                <table className="min-w-full border-collapse text-xs">
-                  <thead className="sticky top-0 bg-slate-100 z-10">
-                    <tr>
-                      <th className="border-b border-slate-300 p-2 text-left font-semibold">ID</th>
-                      <th className="border-b border-slate-300 p-2 text-left font-semibold">Attività</th>
-                      <th className="border-b border-slate-300 p-2 text-center font-semibold">WP</th>
-                      <th className="border-b border-slate-300 p-2 text-left font-semibold">Owner</th>
-                      <th className="border-b border-slate-300 p-2 text-center font-semibold">Date</th>
-                      <th className="border-b border-slate-300 p-2 text-center font-semibold">gg</th>
-                      <th className="border-b border-slate-300 p-2 text-center font-semibold">CP</th>
-                      <th className="border-b border-slate-300 p-2 text-left font-semibold">Note</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredActivities.map((act, idx) => {
-                      const wpColor = wpColors[act.wp] || "#64748B";
-                      const isSelected = selectedActivity === act.id;
-                      
-                      let bgColor = act.phase ? '#F1F5F9' : (idx % 2 === 0 ? 'white' : '#FAFAFA');
-                      if (isSelected) bgColor = '#DBEAFE';
-                      
+          // ========== VISTA FLUSSO COMPLETO ==========
+          const FlowView = () => {
+            const displayActivities = filteredActivities.filter(a => !a.phase);
+            const nodeWidth = 150;
+            const nodeHeight = 56;
+            const levelGap = 175;
+            const nodeGap = 64;
+            
+            const calculateLevels = () => {
+              const levels = {};
+              const getLevel = (id, visited = new Set()) => {
+                if (visited.has(id)) return 0;
+                if (levels[id] !== undefined) return levels[id];
+                visited.add(id);
+                const act = displayActivities.find(a => a.id === id);
+                if (!act) return 0;
+                const validDeps = act.deps.filter(d => !d.startsWith('WP') && displayActivities.find(a => a.id === d));
+                if (validDeps.length === 0) { levels[id] = 0; return 0; }
+                const maxDepLevel = Math.max(...validDeps.map(d => getLevel(d, visited)));
+                levels[id] = maxDepLevel + 1;
+                return levels[id];
+              };
+              displayActivities.forEach(a => getLevel(a.id));
+              return levels;
+            };
+            
+            const levels = calculateLevels();
+            const maxLevel = Math.max(...Object.values(levels), 0);
+            
+            const byLevel = {};
+            displayActivities.forEach(a => {
+              const lvl = levels[a.id] || 0;
+              if (!byLevel[lvl]) byLevel[lvl] = [];
+              byLevel[lvl].push(a);
+            });
+            
+            const positions = {};
+            Object.keys(byLevel).sort((a, b) => a - b).forEach(lvl => {
+              byLevel[lvl].forEach((a, idx) => {
+                positions[a.id] = { x: parseInt(lvl) * levelGap + 30, y: idx * nodeGap + 30 };
+              });
+            });
+            
+            const svgWidth = (maxLevel + 1) * levelGap + 100;
+            const maxNodesInLevel = Math.max(...Object.values(byLevel).map(arr => arr.length), 1);
+            const svgHeight = maxNodesInLevel * nodeGap + 60;
+
+            return (
+              <div className="overflow-auto custom-scrollbar border rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 p-2" style={{ maxHeight: '550px' }}>
+                <svg width={svgWidth} height={svgHeight}>
+                  <defs>
+                    <marker id="arr" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+                      <polygon points="0 0, 7 2.5, 0 5" fill="#94A3B8" />
+                    </marker>
+                    <marker id="arr-crit" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+                      <polygon points="0 0, 7 2.5, 0 5" fill="#DC2626" />
+                    </marker>
+                    <marker id="arr-sel" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+                      <polygon points="0 0, 7 2.5, 0 5" fill="#2563EB" />
+                    </marker>
+                  </defs>
+                  
+                  {/* Linee */}
+                  {displayActivities.map(act => 
+                    act.deps.filter(d => !d.startsWith('WP') && positions[d]).map(depId => {
+                      const from = positions[depId];
+                      const to = positions[act.id];
+                      if (!from || !to) return null;
+                      const depAct = displayActivities.find(a => a.id === depId);
+                      const isCritLine = highlightCritical && depAct?.critical && act.critical;
+                      const isHighlighted = selectedActivity && (act.id === selectedActivity || depId === selectedActivity);
                       return (
-                        <tr key={act.id} style={{ backgroundColor: bgColor }}
-                          className="hover:bg-blue-50 cursor-pointer transition-colors"
-                          onClick={() => setSelectedActivity(selectedActivity === act.id ? null : act.id)}>
-                          <td className="border-b border-slate-200 p-2">
-                            <span className={`font-mono ${act.phase ? 'font-bold' : ''}`} style={{ color: wpColor }}>{act.id}</span>
-                          </td>
-                          <td className={`border-b border-slate-200 p-2 ${act.phase ? 'font-semibold text-slate-700' : ''}`}>
-                            {act.milestone && <span className="mr-1">🏁</span>}
-                            {act.name}
-                          </td>
-                          <td className="border-b border-slate-200 p-2 text-center">
-                            <span className="px-2 py-0.5 rounded text-white text-xs font-bold" style={{ backgroundColor: wpColor }}>
-                              {act.wp.replace('WP', '')}
-                            </span>
-                          </td>
-                          <td className="border-b border-slate-200 p-2 text-slate-600">{act.owner}</td>
-                          <td className="border-b border-slate-200 p-2 text-center text-slate-600">
-                            {act.start} → {act.end}
-                          </td>
-                          <td className="border-b border-slate-200 p-2 text-center font-medium">{act.duration}</td>
-                          <td className="border-b border-slate-200 p-2 text-center">
-                            {act.critical && <span className="text-red-600 font-bold">●</span>}
-                          </td>
-                          <td className="border-b border-slate-200 p-2 text-slate-500 max-w-xs truncate">{act.desc}</td>
-                        </tr>
+                        <line key={`${depId}-${act.id}`}
+                          x1={from.x + nodeWidth} y1={from.y + nodeHeight / 2}
+                          x2={to.x} y2={to.y + nodeHeight / 2}
+                          stroke={isHighlighted ? "#2563EB" : isCritLine ? "#DC2626" : "#CBD5E1"}
+                          strokeWidth={isHighlighted ? 2.5 : isCritLine ? 2 : 1}
+                          markerEnd={isHighlighted ? "url(#arr-sel)" : isCritLine ? "url(#arr-crit)" : "url(#arr)"}
+                          opacity={selectedActivity && !isHighlighted ? 0.15 : 1}
+                        />
                       );
-                    })}
-                  </tbody>
-                </table>
+                    })
+                  )}
+                  
+                  {/* Nodi */}
+                  {displayActivities.map(act => {
+                    const pos = positions[act.id];
+                    if (!pos) return null;
+                    const wpColor = wpColors[act.wp] || "#64748B";
+                    const isSelected = selectedActivity === act.id;
+                    const isPred = selectedActivity && act.deps.includes(selectedActivity);
+                    const isSucc = selectedActivity && dependents[selectedActivity]?.includes(act.id);
+                    
+                    let fill = act.rf ? "#F3E8FF" : `${wpColor}15`;
+                    let stroke = act.rf ? "#9333EA" : wpColor;
+                    let strokeWidth = 1.5;
+                    
+                    if (isSelected) { fill = "#DBEAFE"; stroke = "#2563EB"; strokeWidth = 3; }
+                    else if (isPred) { fill = "#D1FAE5"; stroke = "#10B981"; strokeWidth = 2; }
+                    else if (isSucc) { fill = "#FEF3C7"; stroke = "#F59E0B"; strokeWidth = 2; }
+                    else if (highlightCritical && act.critical) { stroke = "#DC2626"; strokeWidth = 2; }
+                    
+                    return (
+                      <g key={act.id} onClick={() => setSelectedActivity(isSelected ? null : act.id)}
+                        style={{ cursor: 'pointer' }} opacity={selectedActivity && !isSelected && !isPred && !isSucc ? 0.4 : 1}>
+                        <rect x={pos.x} y={pos.y} width={nodeWidth} height={nodeHeight}
+                          rx={act.milestone ? 4 : 8} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
+                        <text x={pos.x + nodeWidth / 2} y={pos.y + 14} textAnchor="middle" fontSize="9" fontWeight="bold" fill={stroke}>
+                          {act.id} {act.rf && "📋"}
+                        </text>
+                        <text x={pos.x + nodeWidth / 2} y={pos.y + 28} textAnchor="middle" fontSize="9" fill="#374151">
+                          {act.name.length > 20 ? act.name.substring(0, 18) + '...' : act.name}
+                        </text>
+                        <text x={pos.x + nodeWidth / 2} y={pos.y + 42} textAnchor="middle" fontSize="8" fill="#9CA3AF">
+                          {act.start} → {act.end}
+                        </text>
+                        <text x={pos.x + nodeWidth / 2} y={pos.y + 52} textAnchor="middle" fontSize="7" fill={wpColor}>
+                          {act.wp}
+                        </text>
+                        {act.critical && highlightCritical && <circle cx={pos.x + nodeWidth - 10} cy={pos.y + 10} r={5} fill="#DC2626" />}
+                        {act.milestone && <text x={pos.x + 8} y={pos.y + 14} fontSize="12">🏁</text>}
+                      </g>
+                    );
+                  })}
+                </svg>
               </div>
+            );
+          };
+
+          // ========== VISTA MATRICE ==========
+          const MatrixView = () => (
+            <div className="overflow-auto border rounded-xl bg-white custom-scrollbar" style={{ maxHeight: '520px' }}>
+              <table className="min-w-full border-collapse text-xs">
+                <thead className="sticky top-0 bg-slate-100 z-10">
+                  <tr>
+                    <th className="border-b border-slate-300 p-2 text-left font-semibold">ID</th>
+                    <th className="border-b border-slate-300 p-2 text-left font-semibold">Attività</th>
+                    <th className="border-b border-slate-300 p-2 text-center font-semibold">WP</th>
+                    <th className="border-b border-slate-300 p-2 text-left font-semibold">Owner</th>
+                    <th className="border-b border-slate-300 p-2 text-left font-semibold">Predecessori</th>
+                    <th className="border-b border-slate-300 p-2 text-left font-semibold">Successori</th>
+                    <th className="border-b border-slate-300 p-2 text-center font-semibold">Date</th>
+                    <th className="border-b border-slate-300 p-2 text-center font-semibold">gg</th>
+                    <th className="border-b border-slate-300 p-2 text-center font-semibold">CP</th>
+                    <th className="border-b border-slate-300 p-2 text-center font-semibold">RF</th>
+                    <th className="border-b border-slate-300 p-2 text-left font-semibold">Note</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredActivities.map((act, idx) => {
+                    const wpColor = wpColors[act.wp] || "#64748B";
+                    const isSelected = selectedActivity === act.id;
+                    const isPred = selectedActivity && act.deps.includes(selectedActivity);
+                    const isSucc = selectedActivity && dependents[selectedActivity]?.includes(act.id);
+                    
+                    let bgColor = act.phase ? '#F1F5F9' : (idx % 2 === 0 ? 'white' : '#FAFAFA');
+                    if (act.rf) bgColor = '#FAF5FF';
+                    if (isSelected) bgColor = '#DBEAFE';
+                    else if (isPred) bgColor = '#D1FAE5';
+                    else if (isSucc) bgColor = '#FEF3C7';
+                    
+                    return (
+                      <tr key={act.id} style={{ backgroundColor: bgColor }}
+                        className="hover:bg-blue-50 cursor-pointer transition-colors"
+                        onClick={() => setSelectedActivity(isSelected ? null : act.id)}>
+                        <td className="border-b border-slate-200 p-2">
+                          <span className={`font-mono ${act.phase ? 'font-bold' : ''}`} style={{ color: wpColor }}>{act.id}</span>
+                        </td>
+                        <td className={`border-b border-slate-200 p-2 ${act.phase ? 'font-semibold text-slate-700' : ''} ${act.rf ? 'italic text-purple-700' : ''}`}>
+                          {act.milestone && <span className="mr-1">🏁</span>}
+                          {act.name}
+                        </td>
+                        <td className="border-b border-slate-200 p-2 text-center">
+                          <span className="px-2 py-0.5 rounded text-white text-xs font-bold" style={{ backgroundColor: wpColor }}>
+                            {act.wp.replace('WP', '')}
+                          </span>
+                        </td>
+                        <td className="border-b border-slate-200 p-2 text-slate-600">{act.owner}</td>
+                        <td className="border-b border-slate-200 p-2">
+                          {act.deps.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {act.deps.slice(0, 3).map(d => (
+                                <span key={d} className="bg-amber-100 text-amber-800 px-1 rounded text-xs">{d}</span>
+                              ))}
+                              {act.deps.length > 3 && <span className="text-slate-400">+{act.deps.length - 3}</span>}
+                            </div>
+                          ) : '–'}
+                        </td>
+                        <td className="border-b border-slate-200 p-2">
+                          {dependents[act.id]?.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {dependents[act.id].slice(0, 3).map(d => (
+                                <span key={d} className="bg-emerald-100 text-emerald-800 px-1 rounded text-xs">{d}</span>
+                              ))}
+                              {dependents[act.id].length > 3 && <span className="text-slate-400">+{dependents[act.id].length - 3}</span>}
+                            </div>
+                          ) : '–'}
+                        </td>
+                        <td className="border-b border-slate-200 p-2 text-center text-slate-600 whitespace-nowrap">
+                          {act.start} → {act.end}
+                        </td>
+                        <td className="border-b border-slate-200 p-2 text-center font-medium">{act.duration}</td>
+                        <td className="border-b border-slate-200 p-2 text-center">
+                          {act.critical && <span className="text-red-600 font-bold">●</span>}
+                        </td>
+                        <td className="border-b border-slate-200 p-2 text-center">
+                          {act.rf && <span className="text-purple-600">📋</span>}
+                          {act.rfTbc && <span className="text-orange-500 text-xs ml-1">TBC</span>}
+                        </td>
+                        <td className="border-b border-slate-200 p-2 text-slate-500 max-w-xs truncate">
+                          {act.note}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           );
 
-          // ============ VISTA RISCHI ============
+          // ========== VISTA RISCHI ==========
           const RisksView = () => (
             <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
               <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
                 ⚠️ Registro Rischi <span className="text-xs font-normal text-slate-400">({risks.length})</span>
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-96 overflow-auto custom-scrollbar">
                 {risks.map(risk => (
                   <div key={risk.id} className={`p-3 rounded-lg border ${risk.impact === 'CRITICO' ? 'border-red-300 bg-red-50' : risk.impact === 'ALTO' ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-slate-50'}`}>
                     <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0">
-                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold text-white ${risk.impact === 'CRITICO' ? 'bg-red-600' : risk.impact === 'ALTO' ? 'bg-amber-600' : 'bg-slate-500'}`}>
-                          {risk.id}
-                        </span>
-                      </div>
+                      <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold text-white ${risk.impact === 'CRITICO' ? 'bg-red-600' : risk.impact === 'ALTO' ? 'bg-amber-600' : 'bg-slate-500'}`}>
+                        {risk.id}
+                      </span>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-mono text-xs px-1.5 py-0.5 bg-slate-200 rounded">{risk.wp}</span>
@@ -439,6 +703,7 @@
                           <span>Prob: <strong>{risk.prob}</strong></span>
                           <span>Impatto: <strong className={risk.impact === 'CRITICO' ? 'text-red-600' : risk.impact === 'ALTO' ? 'text-amber-600' : ''}>{risk.impact}</strong></span>
                           <span>Owner: <strong>{risk.owner}</strong></span>
+                          <span className={`px-1.5 py-0.5 rounded ${risk.status === 'Aperto' ? 'bg-red-100 text-red-700' : risk.status === 'Monitorato' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>{risk.status}</span>
                         </div>
                         <p className="mt-2 text-xs text-slate-600 italic">💡 {risk.mitigation}</p>
                       </div>
@@ -449,35 +714,89 @@
             </div>
           );
 
-          // ============ RENDER PRINCIPALE ============
+          // ========== PANNELLO DETTAGLI ==========
+          const DetailPanel = () => {
+            if (!selectedActivity) return null;
+            const act = activities.find(a => a.id === selectedActivity);
+            if (!act) return null;
+            const preds = act.deps.filter(d => !d.startsWith('WP'));
+            const succs = dependents[selectedActivity] || [];
+            const wpColor = wpColors[act.wp] || "#64748B";
+            
+            return (
+              <div className="bg-white rounded-xl border border-blue-200 p-4 shadow-lg">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-mono font-bold text-lg" style={{ color: wpColor }}>{act.id}</span>
+                      <span className="px-2 py-0.5 rounded text-white text-xs font-bold" style={{ backgroundColor: wpColor }}>{act.wp}</span>
+                      {act.critical && <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold">CRITICAL</span>}
+                      {act.rf && <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs">RF</span>}
+                    </div>
+                    <h4 className="font-semibold text-slate-800">{act.name}</h4>
+                  </div>
+                  <button onClick={() => setSelectedActivity(null)} className="text-slate-400 hover:text-slate-600 text-xl">×</button>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                  <div><span className="text-slate-500">Owner:</span> <strong>{act.owner}</strong></div>
+                  <div><span className="text-slate-500">Durata:</span> <strong>{act.duration} giorni</strong></div>
+                  <div><span className="text-slate-500">Inizio:</span> <strong>{act.start}/2026</strong></div>
+                  <div><span className="text-slate-500">Fine:</span> <strong>{act.end}/2026</strong></div>
+                </div>
+                
+                {act.note && <p className="text-sm text-slate-600 bg-slate-50 p-2 rounded mb-3">📝 {act.note}</p>}
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <div className="text-xs font-semibold text-amber-700 mb-1">⬅️ Predecessori ({preds.length})</div>
+                    <div className="flex flex-wrap gap-1">
+                      {preds.length > 0 ? preds.map(p => (
+                        <button key={p} onClick={() => setSelectedActivity(p)}
+                          className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs hover:bg-amber-200">{p}</button>
+                      )) : <span className="text-slate-400 text-xs">Nessuno</span>}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-emerald-700 mb-1">➡️ Successori ({succs.length})</div>
+                    <div className="flex flex-wrap gap-1">
+                      {succs.length > 0 ? succs.map(s => (
+                        <button key={s} onClick={() => setSelectedActivity(s)}
+                          className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-xs hover:bg-emerald-200">{s}</button>
+                      )) : <span className="text-slate-400 text-xs">Nessuno</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          // ========== RENDER PRINCIPALE ==========
           return (
             <div className="min-h-screen bg-slate-50">
               {/* Header */}
-              <header className="bg-white border-b border-slate-200 px-6 py-4">
+              <header className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-20">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                      📊 Dashboard GANTT WP02-18
+                      📊 Dashboard GANTT WP02-17 v2
                     </h1>
                     <p className="text-sm text-slate-500">
-                      Progetto CRM UNINT - CRMPartners | <span className="text-blue-600">Feb-Giu 2026</span>
+                      Progetto CRM UNINT - CRMPartners | <span className="text-blue-600">Gen-Giu 2026</span>
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 items-center">
                     <div className="bg-slate-100 px-3 py-1.5 rounded-lg text-sm">
-                      <span className="font-bold">{workPackages.filter(w => !w.tbc && !w.rolling).length}</span> <span className="text-slate-500">WP attivi</span>
-                    </div>
-                    <div className="bg-blue-100 px-3 py-1.5 rounded-lg text-sm">
-                      <span className="font-bold text-blue-700">{activities.length}</span> <span className="text-blue-600">attività</span>
+                      <span className="font-bold">{activities.length}</span> <span className="text-slate-500">attività</span>
                     </div>
                     <div className="bg-red-100 px-3 py-1.5 rounded-lg text-sm">
-                      <span className="font-bold text-red-700">{criticalPath.length}</span> <span className="text-red-600">critical</span>
+                      <span className="font-bold text-red-700">{criticalPath.length}</span> <span className="text-red-600">critical path</span>
                     </div>
-                    <div className="bg-amber-100 px-3 py-1.5 rounded-lg text-sm">
-                      <span className="font-bold text-amber-700">{risks.length}</span> <span className="text-amber-600">rischi</span>
+                    <div className="bg-purple-100 px-3 py-1.5 rounded-lg text-sm">
+                      <span className="font-bold text-purple-700">{rfCount}</span> <span className="text-purple-600">requisiti funz.</span>
                     </div>
                     <div className="bg-emerald-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium">
-                      Go-Live: 30/06/2026
+                      🚀 Go-Live: 30/06/2026
                     </div>
                   </div>
                 </div>
@@ -489,156 +808,133 @@
                   <div className="flex flex-wrap items-center gap-4">
                     {/* View Toggle */}
                     <div className="flex bg-slate-100 rounded-lg p-1">
-                      <button onClick={() => setViewMode('roadmap')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${viewMode === 'roadmap' ? 'bg-white shadow text-blue-600' : 'text-slate-600'}`}>
-                        🗺️ Roadmap
+                      <button onClick={() => setViewMode('critical')}
+                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'critical' ? 'bg-red-500 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}`}>
+                        🔴 Critical Path
                       </button>
-                      <button onClick={() => setViewMode('activities')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${viewMode === 'activities' ? 'bg-white shadow text-blue-600' : 'text-slate-600'}`}>
-                        📋 Attività
+                      <button onClick={() => setViewMode('flow')}
+                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'flow' ? 'bg-white shadow text-blue-600' : 'text-slate-600 hover:bg-slate-200'}`}>
+                        📊 Flusso
+                      </button>
+                      <button onClick={() => setViewMode('matrix')}
+                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'matrix' ? 'bg-white shadow text-blue-600' : 'text-slate-600 hover:bg-slate-200'}`}>
+                        📋 Matrice
                       </button>
                       <button onClick={() => setViewMode('risks')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${viewMode === 'risks' ? 'bg-white shadow text-amber-600' : 'text-slate-600'}`}>
+                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'risks' ? 'bg-white shadow text-amber-600' : 'text-slate-600 hover:bg-slate-200'}`}>
                         ⚠️ Rischi
                       </button>
                     </div>
                     
-                    {/* Filtro WP */}
+                    {/* Filters */}
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={highlightCritical} onChange={(e) => setHighlightCritical(e.target.checked)} className="w-4 h-4 rounded text-red-600" />
+                      <span className="text-sm flex items-center gap-1"><span className="text-red-600">●</span> Critical Path</span>
+                    </label>
+                    
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={showRF} onChange={(e) => setShowRF(e.target.checked)} className="w-4 h-4 rounded text-purple-600" />
+                      <span className="text-sm flex items-center gap-1">📋 Requisiti Funz.</span>
+                    </label>
+                    
                     <select value={selectedWP || ''} onChange={(e) => setSelectedWP(e.target.value || null)}
-                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                      className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm">
                       <option value="">🏷️ Tutti i WP</option>
-                      {workPackages.filter(w => !w.tbc && !w.rolling).map(wp => (
-                        <option key={wp.id} value={wp.id}>{wp.id} - {wp.name}</option>
+                      {Object.entries(wpNames).map(([k, v]) => (
+                        <option key={k} value={k}>{k} - {v}</option>
                       ))}
                     </select>
                     
-                    {/* Search */}
-                    <div className="flex-1 min-w-[200px]">
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                        <input type="text" placeholder="Cerca attività..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm" />
-                      </div>
+                    <div className="flex-1 min-w-[180px]">
+                      <input type="text" placeholder="🔍 Cerca attività..." value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm" />
                     </div>
-                    
-                    {/* Critical Path Toggle */}
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={highlightCritical} onChange={(e) => setHighlightCritical(e.target.checked)} className="w-4 h-4 rounded" />
-                      <span className="text-sm flex items-center gap-1"><span className="text-red-600">●</span> Critical Path</span>
-                    </label>
+
+                    {selectedActivity && (
+                      <button onClick={() => setSelectedActivity(null)}
+                        className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300">
+                        ✕ Deseleziona
+                      </button>
+                    )}
                   </div>
                 </div>
 
+                {/* Main Content */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                   {/* Main View */}
                   <div className="lg:col-span-3">
-                    {viewMode === 'roadmap' && <RoadmapView />}
-                    {viewMode === 'activities' && <ActivitiesView />}
+                    {viewMode === 'critical' && <CriticalPathMap />}
+                    {viewMode === 'flow' && <FlowView />}
+                    {viewMode === 'matrix' && <MatrixView />}
                     {viewMode === 'risks' && <RisksView />}
                   </div>
                   
                   {/* Sidebar */}
                   <div className="space-y-4">
+                    {/* Detail Panel */}
+                    <DetailPanel />
+                    
                     {/* Milestones */}
-                    <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
+                    <div className="bg-white rounded-xl border border-slate-200 p-4">
                       <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2">
-                        🏁 Milestone <span className="text-xs font-normal text-slate-400">({milestones.length})</span>
+                        🏁 Milestones <span className="text-xs font-normal text-slate-400">({milestones.length})</span>
                       </h3>
-                      <div className="space-y-2 max-h-64 overflow-auto pr-2 custom-scrollbar">
+                      <div className="space-y-2 max-h-64 overflow-auto custom-scrollbar">
                         {milestones.map(m => (
-                          <div key={m.id} 
-                            className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors"
-                            onClick={() => { setSelectedWP(m.wp); setSelectedActivity(m.id); }}>
-                            <span className="text-xs px-1.5 py-0.5 rounded text-white font-bold" style={{ backgroundColor: wpColors[m.wp] }}>
-                              {m.wp.replace('WP', '')}
-                            </span>
-                            <div className="flex-1">
-                              <span className="text-xs text-slate-600 block">{m.name}</span>
-                              <span className="text-xs text-slate-400">{m.end}/2026</span>
+                          <div key={m.id} onClick={() => setSelectedActivity(m.id)}
+                            className={`p-2 rounded-lg border cursor-pointer transition-colors ${selectedActivity === m.id ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs px-1.5 py-0.5 rounded text-white font-bold" style={{ backgroundColor: wpColors[m.wp] }}>{m.wp.replace('WP', '')}</span>
+                              <span className="text-xs font-medium text-slate-700 flex-1">{m.name}</span>
                             </div>
+                            <div className="text-xs text-slate-500 mt-1">{m.end}/2026</div>
                           </div>
                         ))}
                       </div>
                     </div>
 
                     {/* WP Legend */}
-                    <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
-                      <h3 className="font-bold text-slate-700 mb-3">🎨 Work Packages</h3>
-                      <div className="space-y-2 max-h-80 overflow-auto pr-2 custom-scrollbar">
-                        {workPackages.filter(w => !w.tbc && !w.rolling).map(wp => (
-                          <div key={wp.id} 
-                            className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${selectedWP === wp.id ? 'ring-2 ring-blue-400 bg-blue-50' : 'hover:bg-slate-50'}`}
-                            onClick={() => setSelectedWP(selectedWP === wp.id ? null : wp.id)}>
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: wp.color }}></div>
-                            <div className="flex-1">
-                              <span className="text-sm font-medium text-slate-700">{wp.id}</span>
-                              <span className="text-xs text-slate-400 block">{wp.name}</span>
-                            </div>
-                            <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                              {wp.days}gg
-                            </span>
+                    <div className="bg-white rounded-xl border border-slate-200 p-4">
+                      <h3 className="font-bold text-slate-700 mb-3">🏷️ Work Packages</h3>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {Object.entries(wpNames).map(([wp, name]) => (
+                          <div key={wp} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"
+                            onClick={() => setSelectedWP(selectedWP === wp ? null : wp)}>
+                            <div className="w-3 h-3 rounded" style={{ backgroundColor: wpColors[wp] }}></div>
+                            <span className={`${selectedWP === wp ? 'font-bold' : ''}`}>{wp}</span>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Attività Parallele */}
-                    <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
-                      <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2">
-                        ⚡ Paralleli
-                      </h3>
-                      <div className="space-y-2 text-xs text-slate-600">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono bg-green-100 text-green-700 px-1.5 py-0.5 rounded">WP07//WP08</span>
-                          <span>18-29 Mag</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">WP09//WP10</span>
-                          <span>01-12 Giu</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">WP11//WP12</span>
-                          <span>15-24 Giu</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Quick Stats */}
-                    <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl shadow-sm p-4 text-white">
-                      <h3 className="font-bold mb-3 flex items-center gap-2">📈 Quick Stats</h3>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <span className="text-slate-400 text-xs">Durata totale</span>
-                          <span className="block font-bold">94 giorni</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 text-xs">Riuso medio</span>
-                          <span className="block font-bold">~55%</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 text-xs">Interviste</span>
-                          <span className="block font-bold">~15gg</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 text-xs">UAT Sessions</span>
-                          <span className="block font-bold">12</span>
-                        </div>
+                    {/* Legenda */}
+                    <div className="bg-white rounded-xl border border-slate-200 p-4">
+                      <h3 className="font-bold text-slate-700 mb-3">📖 Legenda</h3>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-red-600"></span> Critical Path</div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-purple-200 border border-purple-400"></span> Requisito Funzionale</div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-amber-200 border border-amber-400"></span> Predecessore selezionato</div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-emerald-200 border border-emerald-400"></span> Successore selezionato</div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-blue-200 border border-blue-400"></span> Attività selezionata</div>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Footer */}
-                <div className="mt-6 text-center text-xs text-slate-400">
-                  <p>Progetto CRM UNINT - Work Packages 02-18 | CRMPartners © 2025</p>
-                  <p className="mt-1">Dashboard v1.0 - Generato da Excel GANTT_WP02-18</p>
-                </div>
               </div>
+
+              {/* Footer */}
+              <footer className="bg-white border-t border-slate-200 px-6 py-3 mt-6">
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span>Dashboard GANTT WP02-17 v2.0 | CRMPartners © 2026</span>
+                  <span>Progetto: 08/01/2026 → 30/06/2026 (~174 giorni)</span>
+                </div>
+              </footer>
             </div>
           );
         }
 
-        ReactDOM.render(<GanttDashboard />, document.getElementById('root'));
+        ReactDOM.createRoot(document.getElementById('root')).render(<GanttDashboard />);
     </script>
 </body>
 </html>
