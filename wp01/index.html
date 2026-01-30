@@ -3,638 +3,1327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard GANTT WP01 - Progetto CRM UNINT v2.3</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    <title>Dashboard GANTT WP01 - Progetto CRM UNINT</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', system-ui, sans-serif; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #1E3A5F; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+        :root {
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --bg-card: #334155;
+            --bg-node: #1E3A5F;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --accent-blue: #3B82F6;
+            --accent-green: #22C55E;
+            --accent-orange: #F59E0B;
+            --accent-red: #EF4444;
+            --accent-purple: #8B5CF6;
+            --accent-cyan: #06B6D4;
+            --critical-red: #DC2626;
+            --done-green: #10B981;
+            --progress-blue: #3B82F6;
+            --todo-gray: #64748B;
+            --milestone-gold: #FBBF24;
+            --border-color: #475569;
+            --shadow-lg: 0 20px 40px rgba(0,0,0,0.4);
+            --shadow-md: 0 10px 20px rgba(0,0,0,0.3);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .title-group h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .title-group .subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .version-badge {
+            background: var(--accent-blue);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            min-width: 80px;
+        }
+
+        .stat-box .number {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-box .label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-box.critical .number {
+            color: var(--critical-red);
+        }
+
+        .stat-box.golive {
+            background: linear-gradient(135deg, var(--accent-green), #059669);
+        }
+
+        .stat-box.golive .number {
+            font-size: 16px;
+        }
+
+        /* Controls Bar */
+        .controls {
+            padding: 16px 32px;
+            background: var(--bg-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: var(--radius-md);
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .view-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .view-btn.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+        }
+
+        .filter-checkbox input {
+            accent-color: var(--critical-red);
+            width: 16px;
+            height: 16px;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 8px 12px 8px 36px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            width: 200px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            min-height: calc(100vh - 160px);
+        }
+
+        /* Flow View */
+        .flow-container {
+            flex: 1;
+            padding: 32px;
+            overflow: auto;
+            position: relative;
+        }
+
+        .flow-canvas {
+            position: relative;
+            min-width: 1400px;
+            min-height: 900px;
+        }
+
+        /* SVG for connections */
+        .connections-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connection-path {
+            fill: none;
+            stroke: var(--border-color);
+            stroke-width: 2;
+            opacity: 0.6;
+        }
+
+        .connection-path.critical {
+            stroke: var(--critical-red);
+            stroke-width: 3;
+            opacity: 0.8;
+        }
+
+        .connection-arrow {
+            fill: var(--border-color);
+        }
+
+        .connection-arrow.critical {
+            fill: var(--critical-red);
+        }
+
+        /* Activity Nodes */
+        .activity-node {
+            position: absolute;
+            background: var(--bg-node);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            min-width: 160px;
+            max-width: 200px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+            box-shadow: var(--shadow-md);
+        }
+
+        .activity-node:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow-lg);
+            z-index: 20;
+        }
+
+        .activity-node.critical {
+            border-color: var(--critical-red);
+            background: linear-gradient(135deg, #1E293B 0%, #2D1B1B 100%);
+        }
+
+        .activity-node.critical::before {
+            content: "";
+            position: absolute;
+            top: -1px;
+            right: -1px;
+            width: 14px;
+            height: 14px;
+            background: var(--critical-red);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--critical-red);
+        }
+
+        .activity-node.milestone {
+            background: linear-gradient(135deg, #422006 0%, #1E293B 100%);
+            border-color: var(--milestone-gold);
+        }
+
+        .activity-node.done {
+            border-color: var(--done-green);
+            opacity: 0.85;
+        }
+
+        .activity-node.in-progress {
+            border-color: var(--progress-blue);
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+        }
+
+        .node-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .node-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        .activity-node.critical .node-id {
+            color: var(--critical-red);
+        }
+
+        .node-title {
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.4;
+            color: var(--text-primary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .node-dates {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .node-status {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .node-status.done { background: var(--done-green); color: white; }
+        .node-status.in-progress { background: var(--progress-blue); color: white; }
+        .node-status.to-do { background: var(--todo-gray); color: white; }
+        .node-status.blocked { background: var(--accent-red); color: white; }
+        .node-status.in-test { background: var(--accent-purple); color: white; }
+        .node-status.milestone { background: var(--milestone-gold); color: #1E293B; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 28px;
+        }
+
+        .sidebar-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-title .icon {
+            font-size: 16px;
+        }
+
+        /* Critical Path List */
+        .critical-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .critical-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--critical-red);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .critical-item:hover {
+            background: var(--bg-node);
+            transform: translateX(4px);
+        }
+
+        .critical-item .num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            min-width: 20px;
+        }
+
+        .critical-item .id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--critical-red);
+            min-width: 40px;
+        }
+
+        .critical-item .name {
+            font-size: 12px;
+            color: var(--text-primary);
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Release Cards */
+        .release-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .release-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            border-left: 4px solid;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .release-card:hover {
+            transform: translateX(4px);
+        }
+
+        .release-card.r1 { border-color: var(--accent-blue); }
+        .release-card.r2 { border-color: var(--accent-green); }
+        .release-card.r3 { border-color: var(--accent-orange); }
+
+        .release-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .release-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .release-date {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .release-progress {
+            height: 6px;
+            background: var(--bg-primary);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .release-progress-bar {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .release-card.r1 .release-progress-bar { background: var(--accent-blue); }
+        .release-card.r2 .release-progress-bar { background: var(--accent-green); }
+        .release-card.r3 .release-progress-bar { background: var(--accent-orange); }
+
+        .release-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .release-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        /* Glossary */
+        .glossary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .glossary-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .glossary-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .glossary-dot.critical { background: var(--critical-red); box-shadow: 0 0 6px var(--critical-red); }
+        .glossary-dot.done { background: var(--done-green); }
+        .glossary-dot.progress { background: var(--progress-blue); }
+        .glossary-dot.todo { background: var(--todo-gray); }
+        .glossary-dot.milestone { background: var(--milestone-gold); }
+
+        /* Matrix View */
+        .matrix-container {
+            display: none;
+            flex: 1;
+            padding: 32px;
+            overflow: auto;
+        }
+
+        .matrix-container.active {
+            display: block;
+        }
+
+        .flow-container.hidden {
+            display: none;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .matrix-table th {
+            background: var(--bg-card);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .matrix-table tbody tr {
+            transition: all 0.2s;
+        }
+
+        .matrix-table tbody tr:hover {
+            background: var(--bg-card);
+        }
+
+        .matrix-table tbody tr.critical {
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        .matrix-table .cell-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        .matrix-table tr.critical .cell-id {
+            color: var(--critical-red);
+        }
+
+        .matrix-table .cell-activity {
+            max-width: 300px;
+        }
+
+        .matrix-table .cell-dates {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .matrix-table .cell-status {
+            text-align: center;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.done { background: var(--done-green); color: white; }
+        .status-badge.in-progress { background: var(--progress-blue); color: white; }
+        .status-badge.to-do { background: var(--todo-gray); color: white; }
+        .status-badge.blocked { background: var(--accent-red); color: white; }
+        .status-badge.in-test { background: var(--accent-purple); color: white; }
+
+        .release-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .release-badge.r1 { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+        .release-badge.r2 { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); }
+        .release-badge.r3 { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); }
+
+        /* Tooltip */
+        .tooltip {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            max-width: 320px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .tooltip-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .tooltip-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .tooltip-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tooltip-meta-item .label {
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 280px;
+            }
+            .activity-node {
+                min-width: 140px;
+                max-width: 180px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .header-stats {
+                display: none;
+            }
+            .sidebar {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
-            <div class="loader"></div>
-            <p style="margin-top: 20px; color: #666;">Caricamento Dashboard GANTT WP01...</p>
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">📊</div>
+            <div class="title-group">
+                <h1>Dashboard GANTT WP01</h1>
+                <div class="subtitle">
+                    Progetto CRM UNINT - CRMPartners
+                    <span class="version-badge">v2.1 - 30/01/2026</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-box">
+                <div class="number">46</div>
+                <div class="label">attività</div>
+            </div>
+            <div class="stat-box critical">
+                <div class="number">25</div>
+                <div class="label">critical path</div>
+            </div>
+            <div class="stat-box golive">
+                <div class="number">Go-Live: 31/03/2026</div>
+                <div class="label">target</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="controls">
+        <div class="view-toggle">
+            <button class="view-btn active" data-view="flow">
+                📈 Flusso
+            </button>
+            <button class="view-btn" data-view="matrix">
+                📋 Matrice
+            </button>
+        </div>
+        <div class="filters">
+            <label class="filter-checkbox">
+                <input type="checkbox" id="filterCritical" checked>
+                <span style="color: var(--critical-red)">● Critical Path</span>
+            </label>
+            <select class="filter-select" id="filterRelease">
+                <option value="all">Tutte le Release</option>
+                <option value="R1">REL1: CRM Core</option>
+                <option value="R2">REL2: Marketing</option>
+                <option value="R3">REL3: Analytics</option>
+            </select>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Cerca attività...">
+            </div>
         </div>
     </div>
 
-    <script type="text/babel">
-        const { useState, useMemo } = React;
+    <div class="main-content">
+        <div class="flow-container" id="flowView">
+            <div class="flow-canvas" id="flowCanvas">
+                <svg class="connections-svg" id="connectionsSvg">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" class="connection-arrow" />
+                        </marker>
+                        <marker id="arrowhead-critical" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" class="connection-arrow critical" />
+                        </marker>
+                    </defs>
+                </svg>
+                <!-- Nodes will be generated here -->
+            </div>
+        </div>
 
-        // ============ DATI GANTT WP01 v2.0 - AGGIORNATO DA EXCEL 19/12/2025 ============
+        <div class="matrix-container" id="matrixView">
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Attività</th>
+                        <th>Area</th>
+                        <th>Owner</th>
+                        <th>Release</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="matrixBody">
+                    <!-- Rows will be generated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">
+                    <span class="icon">🔴</span>
+                    Critical Path (25 attività)
+                </div>
+                <div class="critical-list" id="criticalList">
+                    <!-- Critical path items will be generated here -->
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">
+                    <span class="icon">📦</span>
+                    Release
+                </div>
+                <div class="release-cards" id="releaseCards">
+                    <div class="release-card r1" data-release="R1">
+                        <div class="release-header">
+                            <span class="release-name">REL1: CRM Core</span>
+                            <span class="release-date">30/01/2026</span>
+                        </div>
+                        <div class="release-progress">
+                            <div class="release-progress-bar" style="width: 54%"></div>
+                        </div>
+                        <div class="release-stats">
+                            <span><span class="release-count">14</span> / 26 completate</span>
+                            <span>54%</span>
+                        </div>
+                    </div>
+                    <div class="release-card r2" data-release="R2">
+                        <div class="release-header">
+                            <span class="release-name">REL2: Marketing</span>
+                            <span class="release-date">01/03/2026</span>
+                        </div>
+                        <div class="release-progress">
+                            <div class="release-progress-bar" style="width: 29%"></div>
+                        </div>
+                        <div class="release-stats">
+                            <span><span class="release-count">5</span> / 17 completate</span>
+                            <span>29%</span>
+                        </div>
+                    </div>
+                    <div class="release-card r3" data-release="R3">
+                        <div class="release-header">
+                            <span class="release-name">REL3: ESSE3 + Analytics</span>
+                            <span class="release-date">15/03/2026</span>
+                        </div>
+                        <div class="release-progress">
+                            <div class="release-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="release-stats">
+                            <span><span class="release-count">0</span> / 1 completate</span>
+                            <span>0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">
+                    <span class="icon">📖</span>
+                    Glossario
+                </div>
+                <div class="glossary">
+                    <div class="glossary-item">
+                        <span class="glossary-dot critical"></span>
+                        <span>Critical Path</span>
+                    </div>
+                    <div class="glossary-item">
+                        <span class="glossary-dot done"></span>
+                        <span>Done</span>
+                    </div>
+                    <div class="glossary-item">
+                        <span class="glossary-dot progress"></span>
+                        <span>In Progress</span>
+                    </div>
+                    <div class="glossary-item">
+                        <span class="glossary-dot todo"></span>
+                        <span>To Do</span>
+                    </div>
+                    <div class="glossary-item">
+                        <span class="glossary-dot milestone"></span>
+                        <span>Milestone</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="tooltip" id="tooltip">
+        <div class="tooltip-title"></div>
+        <div class="tooltip-desc"></div>
+        <div class="tooltip-meta"></div>
+    </div>
+
+    <script>
+        // Data from Gantt
         const activities = [
-          // SETUP INIZIALE
-          { id: "0.1", name: "Attivazione Licenze Zoho ONE", release: 1, deps: [], duration: 9, critical: true, owner: "Sales", start: "02/01", end: "10/01",
-            desc: "Attivazione e configurazione licenze Zoho CRM, Forms, Marketing Automation" },
-          { id: "0.2", name: "Setup Ambiente CRM", release: 1, deps: ["0.1"], duration: 4, critical: true, owner: "Solutions", start: "07/01", end: "10/01",
-            desc: "Configurazione ambiente di sviluppo/produzione, utenti admin" },
-          
-          // MODULI CORE - Lead Management
-          { id: "1.1", name: "Config Modulo Lead (Touch Point)", release: 1, deps: ["0.2", "7.1", "7.2"], duration: 13, critical: true, owner: "Solution", start: "07/01", end: "19/01",
-            desc: "Primo punto di contatto con potenziali studenti. Campi anagrafici, canale acquisizione, fonte campagna" },
-          { id: "1.2", name: "Config Modulo Operazioni", release: 1, deps: ["0.2"], duration: 13, critical: false, owner: "Solution", start: "07/01", end: "19/01",
-            desc: "Tracciamento attività e task connessi allo studente/lead" },
-          { id: "1.3", name: "Config Interesse Formativo", release: 1, deps: ["0.2", "7.1", "7.2"], duration: 13, critical: false, owner: "Solution", start: "07/01", end: "19/01",
-            desc: "Campo select per corso di laurea di interesse" },
-          { id: "1.4", name: "Config Modulo Corsi", release: 1, deps: ["0.2", "7.3"], duration: 13, critical: false, owner: "Solution", start: "07/01", end: "19/01",
-            desc: "Lista corsi da documento VPI" },
-          { id: "1.5", name: "Modulo Carriere Studenti", release: 1, deps: ["0.2", "7.1", "7.2", "7.3"], duration: 13, critical: false, owner: "Solution", start: "07/01", end: "19/01",
-            desc: "Dati carriera recuperati da ESSE3" },
-          { id: "1.6", name: "Config Campi Specifici UNINT", release: 1, deps: ["0.2"], duration: 13, critical: false, owner: "Solution", start: "07/01", end: "19/01",
-            desc: "Campi custom specifici per processi UNINT" },
-          { id: "1.7", name: "Modulo Contatto (Conversione)", release: 1, deps: ["1.1"], duration: 13, critical: true, owner: "Solution", start: "07/01", end: "19/01",
-            desc: "Conversione Lead→Contatto dopo qualificazione" },
-          { id: "1.8", name: "Gestione Consensi GDPR", release: 1, deps: ["1.1"], duration: 13, critical: true, owner: "Solution", start: "07/01", end: "19/01",
-            desc: "Consenso vale per intero Ateneo. Validità 24 mesi rinnovabile" },
-          { id: "1.9", name: "Workflow Rinnovo Consensi", release: 1, deps: ["1.8"], duration: 13, critical: true, owner: "Solution", start: "07/01", end: "19/01",
-            desc: "Automazioni per scadenza consensi" },
-          { id: "1.10", name: "Iter Immatricolazione", release: 1, deps: ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"], duration: 13, critical: true, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Processo completo dall'interesse all'immatricolazione" },
-          { id: "1.11", name: "Gestione VPI", release: 1, deps: ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"], duration: 13, critical: true, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Verifica Preparazione Iniziale" },
-          
-          // DATA SET
-          { id: "2.1", name: "Database Scuole/Università", release: 1, deps: ["0.2"], duration: 13, critical: true, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Scuole e codici meccanografici" },
-          { id: "2.3", name: "Gestione Iscrizioni Eventi", release: 1, deps: ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "7.1", "7.2", "7.3"], duration: 13, critical: false, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Registrazione partecipazione eventi orientamento" },
-          { id: "2.4", name: "Modulo Riunioni/Appuntamenti", release: 1, deps: ["0.2"], duration: 13, critical: false, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Gestione colloqui orientamento" },
-          { id: "2.5", name: "Automatismi Riunioni", release: 1, deps: ["2.4"], duration: 13, critical: false, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Reminder automatici, conferme, follow-up" },
-          
-          // SEPARAZIONE UFFICI E FORM
-          { id: "3.1", name: "Separazione Uffici (Bacini)", release: 1, deps: ["0.2"], duration: 13, critical: true, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Config permessi e visibilità tra OR, WOSS, SCDL" },
-          { id: "3.2", name: "Forms Orientamento", release: 1, deps: ["2.1"], duration: 13, critical: false, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Open Day/ Colloquio/ Saloni/ Scuole/ VPI" },
-          
-          // BLUEPRINT E AUTOMAZIONI
-          { id: "4.1", name: "Workflows e Custom Functions", release: 1, deps: ["1.11", "2.1", "3.1"], duration: 13, critical: true, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Automazioni core: azioni automatiche dopo trigger" },
-          { id: "4.2", name: "Automazioni Email/Notifiche", release: 1, deps: ["4.1"], duration: 13, critical: true, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Template email automatiche, notifiche interne" },
-          { id: "4.3", name: "Integrazione WorkDrive", release: 1, deps: ["0.2"], duration: 13, critical: false, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Collegamento documenti studente" },
-          { id: "4.4", name: "Gestione Duplicati", release: 1, deps: ["1.1", "1.7"], duration: 13, critical: false, owner: "Solution", start: "19/01", end: "31/01",
-            desc: "Regole deduplicazione lead e contatti" },
-          
-          // MILESTONE REL1
-          { id: "REL1", name: "🏁 MILESTONE: Release 1", release: 1, deps: ["4.2"], duration: 1, critical: true, milestone: true, owner: "All", start: "30/01", end: "30/01",
-            desc: "Demo validazione per governance UNINT" },
-          
-          // RELEASE 2 - MARKETING
-          { id: "5.1", name: "Config UTM Trackers", release: 2, deps: ["4.1"], duration: 12, critical: true, owner: "Solution", start: "02/02", end: "13/02",
-            desc: "Tracciamento campagne marketing digitale" },
-          { id: "5.2", name: "Gestione Accordi Marketing", release: 2, deps: ["5.1"], duration: 12, critical: false, owner: "Solution", start: "02/02", end: "13/02",
-            desc: "Modulo accordi con partner marketing" },
-          { id: "5.4", name: "Gestione Bacini Marketing", release: 2, deps: ["5.2"], duration: 12, critical: false, owner: "Solution", start: "02/02", end: "13/02",
-            desc: "Segmentazione audience per campagne" },
-          { id: "5.5", name: "Anagrafica Aziende Partner", release: 2, deps: ["5.2"], duration: 12, critical: false, owner: "Solution", start: "02/02", end: "13/02",
-            desc: "Database aziende per placement e marketing" },
-          { id: "5.7", name: "Wireframe Landing Page", release: 2, deps: ["5.1"], duration: 12, critical: false, owner: "Solution", start: "02/02", end: "13/02",
-            desc: "Progettazione landing page" },
-          { id: "5.8", name: "Sviluppo Landing Page", release: 2, deps: ["5.7"], duration: 12, critical: false, owner: "Solution", start: "02/02", end: "13/02",
-            desc: "Implementazione landing page campagne" },
-          { id: "5.9", name: "Config Survey", release: 2, deps: ["1.5", "2.3"], duration: 17, critical: false, owner: "Solution", start: "13/02", end: "01/03",
-            desc: "Survey soddisfazione studenti" },
-          { id: "5.10", name: "Automatismi Survey", release: 2, deps: ["5.9"], duration: 17, critical: false, owner: "Solution", start: "13/02", end: "01/03",
-            desc: "Invio automatico survey post-evento" },
-          
-          // INTEGRAZIONI
-          { id: "6.1", name: "Integrazione Google Ads/Meta", release: 2, deps: ["5.1"], duration: 28, critical: true, owner: "Solution", start: "02/02", end: "01/03",
-            desc: "Connessione piattaforme advertising" },
-          { id: "6.2", name: "Integrazione WhatsApp Business", release: 2, deps: ["1.1"], duration: 29, critical: false, owner: "Solution", start: "01/02", end: "01/03",
-            desc: "Integrazione, tests, templates, validazione, releases, etc" },
-          { id: "6.3", name: "Integrazione VoIP", release: 2, deps: ["1.1"], duration: 29, critical: false, owner: "Solution + Dev", start: "01/02", end: "01/03",
-            desc: "Telefonia integrata nel CRM" },
-          { id: "6.4", name: "LinkedIn", release: 2, deps: ["1.1"], duration: 15, critical: false, owner: "Solution + Dev", start: "01/03", end: "15/03",
-            desc: "Linkedin" },
-          { id: "6.5", name: "Integrazione Moodle", release: 2, deps: ["2.3"], duration: 15, critical: false, owner: "Solution", start: "01/03", end: "15/03",
-            desc: "Connessione piattaforma e-learning" },
-          
-          // MILESTONE REL2
-          { id: "REL2", name: "🏁 MILESTONE: Release 2", release: 2, deps: ["6.1"], duration: 1, critical: true, milestone: true, owner: "All", start: "01/03", end: "01/03",
-            desc: "Marketing automation e integrazioni completate" },
-          
-          // RELEASE 3 - ESSE3
-          { id: "7.1", name: "ESSE3: Stato Interessato", release: 3, deps: ["0.2"], duration: 13, critical: true, owner: "Developer", start: "07/01", end: "19/01",
-            desc: "Sincronizzazione dati interessati da/verso ESSE3" },
-          { id: "7.2", name: "ESSE3: Pre-immatricolazione", release: 3, deps: ["7.1"], duration: 13, critical: true, owner: "Developer", start: "07/01", end: "19/01",
-            desc: "Flusso dati pre-immatricolati" },
-          { id: "7.3", name: "ESSE3: Carriere", release: 3, deps: ["7.1"], duration: 25, critical: true, owner: "Developer", start: "07/01", end: "31/01",
-            desc: "Recupero dati carriere studenti iscritti e laureati" },
-          { id: "7.4", name: "ESSE3: Sincronizzazione Corsi", release: 3, deps: ["7.1"], duration: 25, critical: false, owner: "Developer", start: "07/01", end: "31/01",
-            desc: "Allineamento offerta formativa da ESSE3" },
-          { id: "7.5", name: "ESSE3: Flussi Bidirezionali", release: 3, deps: ["7.3"], duration: 25, critical: false, owner: "Developer", start: "07/01", end: "31/01",
-            desc: "Sincronizzazione bidirezionale CRM↔ESSE3" },
-          { id: "7.6", name: "Connettore ESSE3 Completo", release: 3, deps: ["7.3"], duration: 25, critical: false, milestone: true, owner: "Developer", start: "07/01", end: "31/01",
-            desc: "Finalizzazione connettore con test integrazione" },
-          { id: "7.7", name: "Sviluppi Custom Aggiuntivi", release: 3, deps: [], duration: 25, critical: false, owner: "Developer", start: "07/01", end: "31/01",
-            desc: "Buffer per sviluppi custom emersi in fase di analisi" },
-          { id: "7.8", name: "Calls di allineamento con Ufficio Sviluppo UNINT", release: 3, deps: [], duration: 1, critical: false, milestone: true, owner: "Developer", start: "31/01", end: "31/01",
-            desc: "Milestone: allineamento con ufficio sviluppo UNINT" },
-          { id: "7.9", name: "Dashboard Analytics", release: 3, deps: ["5.1", "6.1"], duration: 28, critical: true, owner: "Solution", start: "02/02", end: "01/03",
-            desc: "Dashboard per WP01 UNINT" },
-          
-          // MILESTONE REL3
-          { id: "REL3", name: "🏁 MILESTONE: Release 3", release: 3, deps: ["7.9"], duration: 1, critical: true, milestone: true, owner: "All", start: "15/03", end: "15/03",
-            desc: "Integrazione ESSE3 e dashboard completate" },
-          
-          // UAT
-          { id: "UAT.1", name: "Test Interni CRMPartners", release: 4, deps: ["4.2", "6.1"], duration: 14, critical: false, owner: "Solution", start: "02/03", end: "15/03",
-            desc: "Test funzionali interni pre-UAT" },
-          { id: "UAT.2", name: "UAT con UNINT", release: 4, deps: ["UAT.1"], duration: 7, critical: false, milestone: true, owner: "Solution + UNINT", start: "15/03", end: "22/03",
-            desc: "User Acceptance Testing con stakeholder UNINT" },
-          { id: "UAT.3", name: "Bug Fixing e Correzioni", release: 4, deps: ["UAT.2"], duration: 28, critical: false, owner: "Solution", start: "02/03", end: "29/03",
-            desc: "Risoluzione issue emersi in UAT" },
-          
-          // FORMAZIONE
-          { id: "F.0", name: "Preparazione Materiale", release: 5, deps: ["UAT.3"], duration: 10, critical: false, owner: "Solution", start: "01/03", end: "15/03",
-            desc: "Guide utente, video tutorial, FAQ" },
-          { id: "F.1", name: "Formazione COM", release: 5, deps: ["F.0"], duration: 12, critical: false, owner: "Solution", start: "16/03", end: "27/03",
-            desc: "Training COM" },
-          { id: "F.2", name: "Formazione OR", release: 5, deps: ["F.0"], duration: 12, critical: false, owner: "Solution", start: "16/03", end: "27/03",
-            desc: "Training OR" },
-          { id: "F.3", name: "Formazione WOSS", release: 5, deps: ["F.0"], duration: 12, critical: false, owner: "Solution", start: "16/03", end: "27/03",
-            desc: "Training WOSS" },
-          { id: "F.4", name: "Formazione SCDL", release: 5, deps: ["F.0"], duration: 12, critical: false, owner: "Solution", start: "16/03", end: "27/03",
-            desc: "Training SCDL" },
-          
-          // GO-LIVE
-          { id: "FAM", name: "Familiarizzazione Sistema Uffici", release: 6, deps: ["F.1", "F.2", "F.3", "F.4"], duration: 16, critical: false, owner: "UNINT", start: "16/03", end: "31/03",
-            desc: "Test hands-on governance + uffici" },
-          { id: "GL.1", name: "Cutover e Migrazione", release: 6, deps: ["FAM"], duration: 1, critical: true, milestone: true, owner: "Stakeholders", start: "31/03", end: "31/03",
-            desc: "Passaggio a produzione" },
-          { id: "GL.2", name: "🚀 GO-LIVE WP01", release: 6, deps: ["GL.1"], duration: 1, critical: true, milestone: true, owner: "All", start: "31/03", end: "31/03",
-            desc: "Sistema operativo per gli uffici - Fine WP01" }
+            { id: "REL1", wp: "", area: "", macro: "", attivita: "RELEASE 1: CRM Operativo", owner: "", predecessore: "", release: "", inizio: "07/01", fine: "30/01", status: "Milestone", is_milestone: true, critical: true },
+            { id: "0.1", wp: "WP01", area: "Accesso", macro: "Setup", attivita: "Attivazione Licenze Zoho ONE", owner: "Sales", predecessore: "", release: "R1", inizio: "02/01", fine: "10/01", status: "Done", is_milestone: false, critical: true },
+            { id: "0.2", wp: "WP01", area: "Accesso", macro: "Setup", attivita: "Setup Ambiente CRM", owner: "Solution", predecessore: "0.1", release: "R1", inizio: "07/01", fine: "10/01", status: "Done", is_milestone: false, critical: true },
+            { id: "1.1", wp: "WP01", area: "Moduli", macro: "Raccolta Lead", attivita: "Config modulo Lead (touchpoint)", owner: "Solution", predecessore: "0.2, 7.1, 7.2", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
+            { id: "1.2", wp: "WP01", area: "Moduli", macro: "Operazioni", attivita: "Config modulo Operazioni", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
+            { id: "1.3", wp: "WP01", area: "Moduli", macro: "Gestione Lead", attivita: "Interesse Formativo", owner: "Solution", predecessore: "0.2, 7.1, 7.2", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
+            { id: "1.4", wp: "WP01", area: "Moduli", macro: "Corsi", attivita: "Config modulo Corsi", owner: "Solution", predecessore: "0.2, 7.3", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
+            { id: "1.5", wp: "WP01", area: "Moduli", macro: "Carriere", attivita: "Modulo Carriere base", owner: "Solution", predecessore: "0.2, 7.1, 7.2, 7.3", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
+            { id: "1.6", wp: "WP01", area: "Dati Moduli", macro: "Config Dettaglio", attivita: "Config Campi specifici", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "07/01", fine: "19/01", status: "In progress", is_milestone: false, critical: true },
+            { id: "1.7", wp: "WP01", area: "Moduli", macro: "Contatti", attivita: "Modulo Contatto", owner: "Solution", predecessore: "1.1", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
+            { id: "1.8", wp: "WP01", area: "Moduli", macro: "Consensi", attivita: "Gestione Consensi GDPR", owner: "Solution", predecessore: "1.1", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
+            { id: "1.9", wp: "WP01", area: "Moduli", macro: "Consensi", attivita: "Workflow rinnovo Consensi", owner: "Solution", predecessore: "1.8", release: "R1", inizio: "07/01", fine: "19/01", status: "In progress", is_milestone: false, critical: true },
+            { id: "1.10", wp: "WP01", area: "Moduli", macro: "Operazioni", attivita: "Iter immatricolazione", owner: "Solution", predecessore: "1.1-1.6", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
+            { id: "1.11", wp: "WP01", area: "Moduli", macro: "Operazioni", attivita: "Gestione prove VPI", owner: "Solution", predecessore: "1.1-1.6", release: "R1", inizio: "19/01", fine: "31/01", status: "In test", is_milestone: false, critical: true },
+            { id: "2.1", wp: "WP01", area: "Data set", macro: "Struttura Dati", attivita: "Database Scuole/Università", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "19/01", fine: "31/01", status: "Done", is_milestone: false, critical: true },
+            { id: "2.3", wp: "WP01", area: "Portale", macro: "Iscrizioni", attivita: "Gestione Iscrizioni eventi", owner: "Solution", predecessore: "1.1-1.6,7.1-7.3", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: true },
+            { id: "2.4", wp: "WP01", area: "Moduli", macro: "Riunioni", attivita: "Modulo Riunioni/Colloqui", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: true },
+            { id: "2.5", wp: "WP01", area: "Moduli", macro: "Riunioni", attivita: "Automatismi Riunioni", owner: "Solution", predecessore: "2.4", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
+            { id: "3.1", wp: "WP01", area: "Bacini Utenze", macro: "Uffici", attivita: "Separazione Uffici OR/WOSS/SCDL", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: true },
+            { id: "3.2", wp: "WP01", area: "Forms", macro: "Form specifici", attivita: "Forms Orientamento", owner: "Solution", predecessore: "2.1", release: "R1", inizio: "19/01", fine: "31/01", status: "In test", is_milestone: false, critical: false },
+            { id: "4.1", wp: "WP01", area: "Blueprint", macro: "Automatismi", attivita: "Workflows/CF core", owner: "Solution", predecessore: "1.11,2.1,3.1", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: true },
+            { id: "4.2", wp: "WP01", area: "Blueprint", macro: "Automatismi", attivita: "Template email", owner: "Solution", predecessore: "4.1", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
+            { id: "4.3", wp: "WP01", area: "Workdrive", macro: "Documentazioni", attivita: "Integrazione Workdrive", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "19/01", fine: "31/01", status: "To Do", is_milestone: false, critical: false },
+            { id: "4.4", wp: "WP01", area: "Blueprint", macro: "Gestione CRM", attivita: "Gestione duplicati", owner: "Solution", predecessore: "1.1,1.7", release: "R1", inizio: "19/01", fine: "31/01", status: "Done", is_milestone: false, critical: false },
+            { id: "5.1", wp: "WP01", area: "Moduli", macro: "Campaigns", attivita: "UTM Trackers", owner: "Solution", predecessore: "4.1", release: "R2", inizio: "02/02", fine: "13/02", status: "In progress", is_milestone: false, critical: true },
+            { id: "5.2", wp: "WP01", area: "Moduli", macro: "Contratti", attivita: "Accordi Marketing (Accounts)", owner: "Solution", predecessore: "5.1", release: "R2", inizio: "02/02", fine: "13/02", status: "Done", is_milestone: false, critical: true },
+            { id: "5.3", wp: "WP01", area: "Contatti", macro: "Bacini", attivita: "Gestione Bacini accordi", owner: "Solution", predecessore: "5.2", release: "R2", inizio: "02/02", fine: "13/02", status: "Done", is_milestone: false, critical: true },
+            { id: "5.4", wp: "WP01", area: "Contatti", macro: "Aziende", attivita: "Anagrafica aziende", owner: "Solution", predecessore: "5.2", release: "R2", inizio: "02/02", fine: "13/02", status: "Done", is_milestone: false, critical: false },
+            { id: "5.5", wp: "WP01", area: "Automazioni", macro: "Contratti", attivita: "Automatizzazione contatto", owner: "Solution", predecessore: "5.3", release: "R2", inizio: "02/02", fine: "13/02", status: "To Do", is_milestone: false, critical: false },
+            { id: "5.6", wp: "WP01", area: "Forms", macro: "Forms", attivita: "Wireframe Landing", owner: "Solution", predecessore: "5.1", release: "R2", inizio: "02/02", fine: "13/02", status: "To Do", is_milestone: false, critical: false },
+            { id: "5.7", wp: "WP01", area: "Form", macro: "Forms", attivita: "Landing Triennali/Magistrali", owner: "Solution", predecessore: "5.7", release: "R2", inizio: "02/02", fine: "13/02", status: "To Do", is_milestone: false, critical: false },
+            { id: "5.8", wp: "WP01", area: "Survey", macro: "Survey", attivita: "Survey config", owner: "Solution", predecessore: "1.5,2.3", release: "R2", inizio: "13/02", fine: "01/03", status: "To Do", is_milestone: false, critical: false },
+            { id: "5.9", wp: "WP01", area: "Survey", macro: "Survey", attivita: "Invio automatico survey", owner: "Solution", predecessore: "5.9", release: "R2", inizio: "13/02", fine: "01/03", status: "To Do", is_milestone: false, critical: false },
+            { id: "6.1", wp: "WP01", area: "Integrazioni", macro: "Integrazioni", attivita: "Integrazione Marketing GAds/Meta", owner: "Solution", predecessore: "5.1", release: "R2", inizio: "02/02", fine: "01/03", status: "To Do", is_milestone: false, critical: true },
+            { id: "6.2", wp: "WP01", area: "Integrazioni", macro: "Integrazioni", attivita: "WhatsApp Business API", owner: "Solution", predecessore: "1.1", release: "R2", inizio: "01/02", fine: "01/03", status: "In progress", is_milestone: false, critical: false },
+            { id: "6.3", wp: "WP01", area: "Integrazioni", macro: "Integrazioni", attivita: "VoIP Integration", owner: "Solution + Dev", predecessore: "1.1", release: "R2", inizio: "01/02", fine: "01/03", status: "In progress", is_milestone: false, critical: false },
+            { id: "6.4", wp: "WP01", area: "Integrazioni", macro: "Integrazioni", attivita: "LinkedIn", owner: "Solution + Dev", predecessore: "1.1", release: "R2", inizio: "01/03", fine: "15/03", status: "To Do", is_milestone: false, critical: false },
+            { id: "6.5", wp: "WP01", area: "Integrazioni", macro: "Integrazioni", attivita: "Moodle e-learning", owner: "Solution", predecessore: "2.3", release: "R2", inizio: "01/03", fine: "15/03", status: "To Do", is_milestone: false, critical: false },
+            { id: "7.1", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "ESSE3: Stato Int./Registrato", owner: "Developer", predecessore: "0.2", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
+            { id: "7.2", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "ESSE3: Pre-immatricolato", owner: "Developer", predecessore: "7.1", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
+            { id: "7.3", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "ESSE3: Carriere", owner: "Developer", predecessore: "7.1", release: "R1", inizio: "07/01", fine: "31/01", status: "Done", is_milestone: false, critical: true },
+            { id: "7.4", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "ESSE3: Sincroniz. Corsi", owner: "Developer", predecessore: "7.1", release: "R2", inizio: "07/01", fine: "31/01", status: "Done", is_milestone: false, critical: false },
+            { id: "7.5", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "ESSE3: Flussi Bi-direzionali", owner: "Developer", predecessore: "7.3", release: "R2", inizio: "07/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
+            { id: "7.6", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "Connettore ESSE3", owner: "Developer", predecessore: "7.3", release: "R2", inizio: "07/01", fine: "31/01", status: "Done", is_milestone: false, critical: false },
+            { id: "7.7", wp: "WP01", area: "Integrazioni", macro: "Sviluppo", attivita: "Sviluppi Custom", owner: "Developer", predecessore: "", release: "", inizio: "07/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
+            { id: "7.8", wp: "WP01", area: "Integrazioni", macro: "SVI", attivita: "Calls Ufficio Sviluppo", owner: "Developer", predecessore: "", release: "", inizio: "31/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
+            { id: "8.1", wp: "WP01", area: "Analytics", macro: "Zoho Analytics", attivita: "Dashboard (Analytics)", owner: "Solution", predecessore: "5.1,6.1", release: "R3", inizio: "02/02", fine: "01/03", status: "In progress", is_milestone: false, critical: false }
         ];
 
-        const releaseInfo = {
-          1: { name: "REL1: CRM Core", color: "#1E88E5", bgColor: "#E3F2FD", milestone: "30/01/2026", desc: "Moduli Lead, Contatto, Form, Consensi, VPI" },
-          2: { name: "REL2: Marketing", color: "#43A047", bgColor: "#E8F5E9", milestone: "01/03/2026", desc: "UTM, Landing Page, Survey, WhatsApp, VoIP" },
-          3: { name: "REL3: ESSE3 + Analytics", color: "#FB8C00", bgColor: "#FFF3E0", milestone: "15/03/2026", desc: "Integrazione ESSE3, Dashboard Analytics" },
-          4: { name: "UAT", color: "#8E24AA", bgColor: "#F3E5F5", milestone: "22/03/2026", desc: "Test interni e User Acceptance Testing" },
-          5: { name: "Formazione", color: "#D81B60", bgColor: "#FCE4EC", milestone: "27/03/2026", desc: "Training COM, OR, WOSS, SCDL" },
-          6: { name: "Go-Live", color: "#00897B", bgColor: "#E0F2F1", milestone: "31/03/2026", desc: "Familiarizzazione + Cutover + Go-Live" }
+        const criticalPath = ["0.1", "0.2", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "1.11", "2.1", "2.3", "2.4", "3.1", "4.1", "5.1", "5.2", "5.3", "6.1", "7.1", "7.2", "7.3"];
+
+        // Node positions for flow view (manually arranged for clarity)
+        const nodePositions = {
+            "0.1": { x: 50, y: 100 },
+            "0.2": { x: 250, y: 100 },
+            "7.7": { x: 50, y: 220 },
+            "7.8": { x: 50, y: 340 },
+            "1.2": { x: 450, y: 40 },
+            "1.6": { x: 450, y: 160 },
+            "2.1": { x: 450, y: 280 },
+            "2.4": { x: 450, y: 400 },
+            "3.1": { x: 450, y: 520 },
+            "4.3": { x: 450, y: 640 },
+            "7.1": { x: 450, y: 760 },
+            "2.5": { x: 650, y: 40 },
+            "3.2": { x: 650, y: 160 },
+            "7.2": { x: 650, y: 280 },
+            "7.3": { x: 650, y: 400 },
+            "7.4": { x: 650, y: 520 },
+            "7.5": { x: 650, y: 640 },
+            "7.6": { x: 650, y: 760 },
+            "1.1": { x: 850, y: 40 },
+            "1.3": { x: 850, y: 160 },
+            "1.4": { x: 850, y: 280 },
+            "1.5": { x: 850, y: 400 },
+            "REL1": { x: 1050, y: 40 },
+            "1.7": { x: 1050, y: 160 },
+            "1.8": { x: 1050, y: 280 },
+            "1.9": { x: 1050, y: 400 },
+            "1.10": { x: 1050, y: 520 },
+            "1.11": { x: 1050, y: 640 },
+            "2.3": { x: 1050, y: 760 },
+            "4.1": { x: 1250, y: 160 },
+            "4.2": { x: 1250, y: 280 },
+            "4.4": { x: 1250, y: 400 },
+            "5.1": { x: 1450, y: 100 },
+            "5.2": { x: 1450, y: 220 },
+            "5.3": { x: 1450, y: 340 },
+            "5.4": { x: 1450, y: 460 },
+            "5.5": { x: 1450, y: 580 },
+            "5.6": { x: 1650, y: 100 },
+            "5.7": { x: 1650, y: 220 },
+            "5.8": { x: 1650, y: 340 },
+            "5.9": { x: 1650, y: 460 },
+            "6.1": { x: 1650, y: 580 },
+            "6.2": { x: 1650, y: 700 },
+            "6.3": { x: 1850, y: 100 },
+            "6.4": { x: 1850, y: 220 },
+            "6.5": { x: 1850, y: 340 },
+            "8.1": { x: 1850, y: 460 }
         };
 
-        // Glossario termini
-        const glossary = [
-          { term: "Touch Point", def: "Primo punto di contatto tra potenziale studente e Ateneo" },
-          { term: "Interesse Formativo", def: "Corso di laurea di interesse, acquisito al touch point" },
-          { term: "Operazioni", def: "Modulo CRM che traccia attività e task" },
-          { term: "Separazione Uffici", def: "Config permessi tra OR, WOSS, SCDL" },
-          { term: "Consenso GDPR", def: "Vale per Ateneo, criterio temporale, 24 mesi" },
-          { term: "VPI", def: "Verifica Preparazione Iniziale" },
-          { term: "ESSE3", def: "Sistema gestionale studenti CINECA" },
-          { term: "Familiarizzazione", def: "Fase hands-on distinta dalla formazione" }
-        ];
+        // Generate default positions for missing nodes
+        let defaultX = 50, defaultY = 880;
+        activities.forEach(a => {
+            if (!nodePositions[a.id]) {
+                nodePositions[a.id] = { x: defaultX, y: defaultY };
+                defaultX += 200;
+                if (defaultX > 1800) {
+                    defaultX = 50;
+                    defaultY += 120;
+                }
+            }
+        });
 
-        // ============ COMPONENTE PRINCIPALE ============
-        function GanttDashboard() {
-          const [selectedActivity, setSelectedActivity] = useState(null);
-          const [highlightCritical, setHighlightCritical] = useState(true);
-          const [selectedRelease, setSelectedRelease] = useState(null);
-          const [viewMode, setViewMode] = useState('flow');
-          const [searchTerm, setSearchTerm] = useState('');
-          const [showGlossary, setShowGlossary] = useState(false);
+        // DOM Elements
+        const flowCanvas = document.getElementById('flowCanvas');
+        const connectionsSvg = document.getElementById('connectionsSvg');
+        const matrixBody = document.getElementById('matrixBody');
+        const criticalList = document.getElementById('criticalList');
+        const tooltip = document.getElementById('tooltip');
+        const viewBtns = document.querySelectorAll('.view-btn');
+        const flowView = document.getElementById('flowView');
+        const matrixView = document.getElementById('matrixView');
+        const filterCritical = document.getElementById('filterCritical');
+        const filterRelease = document.getElementById('filterRelease');
+        const searchInput = document.getElementById('searchInput');
 
-          const dependents = useMemo(() => {
-            const deps = {};
-            activities.forEach(act => {
-              deps[act.id] = activities.filter(a => a.deps.includes(act.id)).map(a => a.id);
-            });
-            return deps;
-          }, []);
-
-          const criticalPath = useMemo(() => activities.filter(a => a.critical).map(a => a.id), []);
-          
-          const groupedActivities = useMemo(() => {
-            const groups = {};
-            activities.forEach(act => {
-              if (!groups[act.release]) groups[act.release] = [];
-              groups[act.release].push(act);
-            });
-            return groups;
-          }, []);
-
-          const filteredActivities = useMemo(() => {
-            return activities.filter(act => {
-              const matchesSearch = searchTerm === '' || 
-                act.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                act.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                act.desc.toLowerCase().includes(searchTerm.toLowerCase());
-              const matchesRelease = !selectedRelease || act.release === selectedRelease;
-              return matchesSearch && matchesRelease;
-            });
-          }, [searchTerm, selectedRelease]);
-
-          const getActivityById = (id) => activities.find(a => a.id === id);
-
-          const getHighlightType = (act) => {
-            if (selectedActivity === act.id) return 'selected';
-            if (selectedActivity && act.deps.includes(selectedActivity)) return 'dependent';
-            if (selectedActivity && dependents[selectedActivity]?.includes(act.id)) return 'predecessor';
-            if (highlightCritical && act.critical) return 'critical';
-            return 'normal';
-          };
-
-          // ============ VISTA FLUSSO SVG ============
-          const FlowView = () => {
-            const nodeWidth = 140;
-            const nodeHeight = 52;
-            const levelGap = 170;
-            const nodeGap = 58;
-            
-            const calculateLevels = () => {
-              const levels = {};
-              const getLevel = (id, path = []) => {
-                if (path.includes(id)) return 0;
-                if (levels[id] !== undefined) return levels[id];
-                const act = getActivityById(id);
-                if (!act || act.deps.length === 0) { levels[id] = 0; return 0; }
-                const maxDepLevel = Math.max(...act.deps.map(d => getLevel(d, [...path, id])));
-                levels[id] = maxDepLevel + 1;
-                return levels[id];
-              };
-              activities.forEach(a => getLevel(a.id));
-              return levels;
-            };
-            
-            const levels = calculateLevels();
-            const maxLevel = Math.max(...Object.values(levels));
-            
-            const byLevel = {};
-            activities.forEach(a => {
-              const lvl = levels[a.id];
-              if (!byLevel[lvl]) byLevel[lvl] = [];
-              byLevel[lvl].push(a);
-            });
-            
-            const positions = {};
-            Object.keys(byLevel).forEach(lvl => {
-              byLevel[lvl].forEach((a, idx) => {
-                positions[a.id] = { x: parseInt(lvl) * levelGap + 50, y: idx * nodeGap + 35 };
-              });
-            });
-            
-            const svgWidth = (maxLevel + 1) * levelGap + 120;
-            const maxNodesInLevel = Math.max(...Object.values(byLevel).map(arr => arr.length));
-            const svgHeight = maxNodesInLevel * nodeGap + 70;
-
-            return (
-              <div className="overflow-auto border rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 p-4 custom-scrollbar" style={{ maxHeight: '600px' }}>
-                <svg width={svgWidth} height={svgHeight}>
-                  <defs>
-                    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-                      <polygon points="0 0, 8 3, 0 6" fill="#94A3B8" />
+        // Render Flow View
+        function renderFlowView() {
+            // Clear existing nodes (keep SVG)
+            flowCanvas.querySelectorAll('.activity-node').forEach(n => n.remove());
+            connectionsSvg.innerHTML = `
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" class="connection-arrow" />
                     </marker>
-                    <marker id="arrow-critical" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-                      <polygon points="0 0, 8 3, 0 6" fill="#DC2626" />
+                    <marker id="arrowhead-critical" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" class="connection-arrow critical" />
                     </marker>
-                    <marker id="arrow-highlight" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-                      <polygon points="0 0, 8 3, 0 6" fill="#2563EB" />
-                    </marker>
-                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                      <feDropShadow dx="1" dy="2" stdDeviation="2" floodOpacity="0.15"/>
-                    </filter>
-                  </defs>
-                  
-                  {/* Linee di dipendenza */}
-                  {activities.map(act => 
-                    act.deps.map(depId => {
-                      const from = positions[depId];
-                      const to = positions[act.id];
-                      if (!from || !to) return null;
-                      
-                      const isCriticalLine = highlightCritical && 
-                        activities.find(a => a.id === depId)?.critical && act.critical;
-                      const isHighlightedLine = selectedActivity && 
-                        (act.id === selectedActivity || depId === selectedActivity);
-                      const isFiltered = selectedRelease && (act.release !== selectedRelease || 
-                        activities.find(a => a.id === depId)?.release !== selectedRelease);
-                      
-                      return (
-                        <line
-                          key={`${depId}-${act.id}`}
-                          x1={from.x + nodeWidth}
-                          y1={from.y + nodeHeight / 2}
-                          x2={to.x}
-                          y2={to.y + nodeHeight / 2}
-                          stroke={isHighlightedLine ? "#2563EB" : isCriticalLine ? "#DC2626" : "#CBD5E1"}
-                          strokeWidth={isHighlightedLine ? 2.5 : isCriticalLine ? 2 : 1}
-                          markerEnd={isHighlightedLine ? "url(#arrow-highlight)" : isCriticalLine ? "url(#arrow-critical)" : "url(#arrow)"}
-                          opacity={isFiltered ? 0.15 : (selectedActivity && !isHighlightedLine ? 0.25 : 1)}
-                        />
-                      );
-                    })
-                  )}
-                  
-                  {/* Nodi attività */}
-                  {activities.map(act => {
-                    const pos = positions[act.id];
-                    if (!pos) return null;
-                    
-                    const release = releaseInfo[act.release];
-                    const highlightType = getHighlightType(act);
-                    const isFiltered = selectedRelease && act.release !== selectedRelease;
-                    const matchesSearch = searchTerm === '' || 
-                      act.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      act.name.toLowerCase().includes(searchTerm.toLowerCase());
-                    
-                    let fill = release.bgColor;
-                    let stroke = release.color;
-                    let strokeWidth = 1.5;
-                    let opacity = (isFiltered || !matchesSearch) ? 0.2 : 1;
-                    
-                    if (highlightType === 'selected') {
-                      fill = '#DBEAFE'; stroke = '#2563EB'; strokeWidth = 3;
-                    } else if (highlightType === 'critical' && highlightCritical) {
-                      stroke = '#DC2626'; strokeWidth = 2.5;
-                    } else if (highlightType === 'dependent') {
-                      fill = '#FEF3C7'; stroke = '#F59E0B'; strokeWidth = 2;
-                    } else if (highlightType === 'predecessor') {
-                      fill = '#D1FAE5'; stroke = '#10B981'; strokeWidth = 2;
-                    }
-                    
-                    return (
-                      <g key={act.id}
-                        onClick={() => setSelectedActivity(selectedActivity === act.id ? null : act.id)}
-                        style={{ cursor: 'pointer', opacity }}
-                        filter="url(#shadow)">
-                        <rect x={pos.x} y={pos.y} width={nodeWidth} height={nodeHeight}
-                          rx={act.milestone ? 3 : 8} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
-                        <text x={pos.x + nodeWidth / 2} y={pos.y + 18}
-                          textAnchor="middle" fontSize="11" fontWeight="bold" fill={stroke}>
-                          {act.id}
-                        </text>
-                        <text x={pos.x + nodeWidth / 2} y={pos.y + 33}
-                          textAnchor="middle" fontSize="9" fill="#374151">
-                          {act.name.length > 18 ? act.name.substring(0, 16) + '...' : act.name}
-                        </text>
-                        <text x={pos.x + nodeWidth / 2} y={pos.y + 46}
-                          textAnchor="middle" fontSize="8" fill="#9CA3AF">
-                          {act.start} → {act.end}
-                        </text>
-                        {act.critical && highlightCritical && (
-                          <circle cx={pos.x + nodeWidth - 12} cy={pos.y + 12} r={6} fill="#DC2626" />
-                        )}
-                        {act.milestone && (
-                          <polygon 
-                            points={`${pos.x + 10},${pos.y + nodeHeight/2} ${pos.x + 18},${pos.y + nodeHeight/2 - 8} ${pos.x + 26},${pos.y + nodeHeight/2} ${pos.x + 18},${pos.y + nodeHeight/2 + 8}`}
-                            fill={stroke} />
-                        )}
-                      </g>
-                    );
-                  })}
-                </svg>
-              </div>
-            );
-          };
+                </defs>
+            `;
 
-          // ============ VISTA MATRICE ============
-          const MatrixView = () => (
-            <div className="overflow-auto border rounded-xl bg-white custom-scrollbar" style={{ maxHeight: '550px' }}>
-              <table className="min-w-full border-collapse text-xs">
-                <thead className="sticky top-0 bg-slate-100 z-10">
-                  <tr>
-                    <th className="border-b border-slate-300 p-2 text-left font-semibold">ID</th>
-                    <th className="border-b border-slate-300 p-2 text-left font-semibold">Attività</th>
-                    <th className="border-b border-slate-300 p-2 text-center font-semibold">Release</th>
-                    <th className="border-b border-slate-300 p-2 text-left font-semibold">Owner</th>
-                    <th className="border-b border-slate-300 p-2 text-left font-semibold">Predecessori</th>
-                    <th className="border-b border-slate-300 p-2 text-left font-semibold">Successori</th>
-                    <th className="border-b border-slate-300 p-2 text-center font-semibold">Date</th>
-                    <th className="border-b border-slate-300 p-2 text-center font-semibold">gg</th>
-                    <th className="border-b border-slate-300 p-2 text-center font-semibold">CP</th>
-                    <th className="border-b border-slate-300 p-2 text-left font-semibold">Descrizione</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredActivities.map((act, idx) => {
-                    const release = releaseInfo[act.release];
-                    const isSelected = selectedActivity === act.id;
-                    const isPred = selectedActivity && act.deps.includes(selectedActivity);
-                    const isSucc = selectedActivity && dependents[selectedActivity]?.includes(act.id);
-                    
-                    let bgColor = idx % 2 === 0 ? 'white' : '#F8FAFC';
-                    if (isSelected) bgColor = '#DBEAFE';
-                    else if (isPred) bgColor = '#D1FAE5';
-                    else if (isSucc) bgColor = '#FEF3C7';
-                    
-                    return (
-                      <tr key={act.id} style={{ backgroundColor: bgColor }}
-                        className="hover:bg-blue-50 cursor-pointer transition-colors"
-                        onClick={() => setSelectedActivity(selectedActivity === act.id ? null : act.id)}>
-                        <td className="border-b border-slate-200 p-2">
-                          <span className="font-bold" style={{ color: release.color }}>{act.id}</span>
-                        </td>
-                        <td className="border-b border-slate-200 p-2 font-medium">
-                          {act.milestone && <span className="mr-1">🏁</span>}
-                          {act.name}
-                        </td>
-                        <td className="border-b border-slate-200 p-2 text-center">
-                          <span className="px-2 py-0.5 rounded text-white text-xs font-bold" style={{ backgroundColor: release.color }}>
-                            R{act.release}
-                          </span>
-                        </td>
-                        <td className="border-b border-slate-200 p-2 text-slate-600">{act.owner}</td>
-                        <td className="border-b border-slate-200 p-2">
-                          {act.deps.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {act.deps.slice(0, 3).map(d => (
-                                <span key={d} className="bg-amber-100 text-amber-800 px-1 rounded text-xs">{d}</span>
-                              ))}
-                              {act.deps.length > 3 && <span className="text-slate-400">+{act.deps.length - 3}</span>}
-                            </div>
-                          ) : '–'}
-                        </td>
-                        <td className="border-b border-slate-200 p-2">
-                          {dependents[act.id]?.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {dependents[act.id].slice(0, 3).map(d => (
-                                <span key={d} className="bg-emerald-100 text-emerald-800 px-1 rounded text-xs">{d}</span>
-                              ))}
-                              {dependents[act.id].length > 3 && <span className="text-slate-400">+{dependents[act.id].length - 3}</span>}
-                            </div>
-                          ) : '–'}
-                        </td>
-                        <td className="border-b border-slate-200 p-2 text-center text-slate-600">
-                          {act.start} → {act.end}
-                        </td>
-                        <td className="border-b border-slate-200 p-2 text-center font-medium">{act.duration}</td>
-                        <td className="border-b border-slate-200 p-2 text-center">
-                          {act.critical && <span className="text-red-600 font-bold">●</span>}
-                        </td>
-                        <td className="border-b border-slate-200 p-2 text-slate-500 max-w-xs truncate">{act.desc}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          );
+            const showCriticalOnly = filterCritical.checked;
+            const releaseFilter = filterRelease.value;
+            const searchTerm = searchInput.value.toLowerCase();
 
-          // ============ RENDER PRINCIPALE ============
-          return (
-            <div className="min-h-screen bg-slate-50">
-              {/* Header */}
-              <header className="bg-white border-b border-slate-200 px-6 py-4">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                      📊 Dashboard GANTT WP01
-                    </h1>
-                    <p className="text-sm text-slate-500">
-                      Progetto CRM UNINT - CRMPartners | <span className="text-blue-600">v2.0 - 19/12/2025</span>
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 items-center">
-                    <div className="bg-slate-100 px-3 py-1.5 rounded-lg text-sm">
-                      <span className="font-bold">{activities.length}</span> <span className="text-slate-500">attività</span>
-                    </div>
-                    <div className="bg-red-100 px-3 py-1.5 rounded-lg text-sm">
-                      <span className="font-bold text-red-700">{criticalPath.length}</span> <span className="text-red-600">critical path</span>
-                    </div>
-                    <div className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium">
-                      Go-Live: 31/03/2026
-                    </div>
-                  </div>
-                </div>
-              </header>
+            // Filter activities
+            let filtered = activities.filter(a => {
+                if (showCriticalOnly && !criticalPath.includes(a.id) && !a.is_milestone) return false;
+                if (releaseFilter !== 'all' && a.release !== releaseFilter && !a.is_milestone) return false;
+                if (searchTerm && !a.attivita.toLowerCase().includes(searchTerm) && !a.id.toLowerCase().includes(searchTerm)) return false;
+                return true;
+            });
 
-              <div className="p-6">
-                {/* Toolbar */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
-                  <div className="flex flex-wrap items-center gap-4">
-                    {/* View Toggle */}
-                    <div className="flex bg-slate-100 rounded-lg p-1">
-                      <button onClick={() => setViewMode('flow')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${viewMode === 'flow' ? 'bg-white shadow text-blue-600' : 'text-slate-600'}`}>
-                        📊 Flusso
-                      </button>
-                      <button onClick={() => setViewMode('matrix')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${viewMode === 'matrix' ? 'bg-white shadow text-blue-600' : 'text-slate-600'}`}>
-                        📋 Matrice
-                      </button>
-                    </div>
-                    
-                    {/* Filters */}
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={highlightCritical} onChange={(e) => setHighlightCritical(e.target.checked)} className="w-4 h-4 rounded" />
-                      <span className="text-sm flex items-center gap-1"><span className="text-red-600">●</span> Critical Path</span>
-                    </label>
-                    
-                    <select value={selectedRelease || ''} onChange={(e) => setSelectedRelease(e.target.value ? parseInt(e.target.value) : null)}
-                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm">
-                      <option value="">🏷️ Tutte le Release</option>
-                      {Object.entries(releaseInfo).map(([k, v]) => (
-                        <option key={k} value={k}>{v.name}</option>
-                      ))}
-                    </select>
-                    
-                    <div className="flex-1 min-w-[200px]">
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                        <input type="text" placeholder="Cerca attività..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm" />
-                      </div>
-                    </div>
-                    
-                    <button onClick={() => setShowGlossary(!showGlossary)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${showGlossary ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                      🥬 Glossario
-                    </button>
-                  </div>
-                </div>
+            // Create nodes
+            filtered.forEach(activity => {
+                const pos = nodePositions[activity.id] || { x: 0, y: 0 };
+                const node = document.createElement('div');
+                node.className = 'activity-node';
+                node.dataset.id = activity.id;
+                
+                if (criticalPath.includes(activity.id)) node.classList.add('critical');
+                if (activity.is_milestone) node.classList.add('milestone');
+                
+                const statusClass = activity.status.toLowerCase().replace(/\s+/g, '-');
+                if (statusClass === 'done') node.classList.add('done');
+                if (statusClass === 'in-progress') node.classList.add('in-progress');
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                  {/* Main View */}
-                  <div className="lg:col-span-3">
-                    {viewMode === 'flow' ? <FlowView /> : <MatrixView />}
-                  </div>
-                  
-                  {/* Sidebar */}
-                  <div className="space-y-4">
-                    {/* Glossary */}
-                    {showGlossary && (
-                      <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
-                        <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2">📌 Come usare la dashboard</h3>
-                        <ul className="text-sm text-slate-600 space-y-2">
-                          <li className="flex items-start gap-2"><span className="text-blue-500">→</span><span><strong>Click</strong> su un nodo per dettagli</span></li>
-                          <li className="flex items-start gap-2"><span className="inline-block w-3 h-3 bg-amber-400 rounded"></span><span>Predecessori (da chi dipendo)</span></li>
-                          <li className="flex items-start gap-2"><span className="inline-block w-3 h-3 bg-emerald-400 rounded"></span><span>Successori (chi dipende da me)</span></li>
-                          <li className="flex items-start gap-2"><span className="text-red-600 font-bold">●</span><span>Attività sul Critical Path</span></li>
-                          <li className="flex items-start gap-2"><span>🏁</span><span>Milestone di progetto</span></li>
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {/* Critical Path */}
-                    <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
-                      <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2">
-                        🔴 Critical Path <span className="text-xs font-normal text-slate-400">({criticalPath.length} attività)</span>
-                      </h3>
-                      <div className="space-y-1 max-h-48 overflow-auto pr-2 custom-scrollbar">
-                        {criticalPath.map((id, idx) => {
-                          const act = getActivityById(id);
-                          const release = releaseInfo[act.release];
-                          return (
-                            <div key={id} onClick={() => setSelectedActivity(id)}
-                              className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${selectedActivity === id ? 'bg-red-100' : 'hover:bg-red-50'}`}>
-                              <span className="text-xs text-slate-400 w-5">{idx + 1}.</span>
-                              <span className="font-mono font-bold text-sm" style={{ color: release.color }}>{id}</span>
-                              <span className="text-xs text-slate-600 truncate flex-1">{act?.name}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                node.style.left = pos.x + 'px';
+                node.style.top = pos.y + 'px';
 
-                    {/* Release Legend */}
-                    <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
-                      <h3 className="font-bold text-slate-700 mb-3">🎨 Release</h3>
-                      <div className="space-y-2">
-                        {Object.entries(releaseInfo).map(([key, val]) => (
-                          <div key={key} 
-                            className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${selectedRelease === parseInt(key) ? 'ring-2 ring-blue-400 bg-blue-50' : 'hover:bg-slate-50'}`}
-                            onClick={() => setSelectedRelease(selectedRelease === parseInt(key) ? null : parseInt(key))}>
-                            <div className="w-4 h-4 rounded" style={{ backgroundColor: val.color }}></div>
-                            <div className="flex-1">
-                              <span className="text-sm font-medium text-slate-700">{val.name}</span>
-                              <span className="text-xs text-slate-400 block">{val.milestone}</span>
-                            </div>
-                            <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                              {groupedActivities[key]?.length || 0}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                node.innerHTML = `
+                    <div class="node-header">
+                        <span class="node-id">${activity.id}</span>
                     </div>
-                  </div>
-                </div>
+                    <div class="node-title">${activity.attivita.length > 35 ? activity.attivita.substring(0, 35) + '...' : activity.attivita}</div>
+                    <div class="node-dates">${activity.inizio} → ${activity.fine}</div>
+                    <span class="node-status ${statusClass}">${activity.status}</span>
+                `;
 
-                {/* Footer */}
-                <div className="mt-6 text-center text-xs text-slate-400">
-                  <p>Progetto CRM UNINT - Work Package 01 | CRMPartners © 2025</p>
-                  <p className="mt-1">Dashboard v2.3 - Aggiornato da Excel 19/12/2025</p>
-                </div>
-              </div>
-            </div>
-          );
+                node.addEventListener('mouseenter', (e) => showTooltip(e, activity));
+                node.addEventListener('mouseleave', hideTooltip);
+                node.addEventListener('click', () => highlightConnections(activity.id));
+
+                flowCanvas.appendChild(node);
+            });
+
+            // Draw connections
+            const filteredIds = filtered.map(a => a.id);
+            filtered.forEach(activity => {
+                if (activity.predecessore) {
+                    const preds = activity.predecessore.split(',').map(p => p.trim());
+                    preds.forEach(predId => {
+                        // Handle range predecessors like "1.1-1.6"
+                        if (predId.includes('-') && !predId.startsWith('7')) {
+                            return; // Skip range predecessors for visual clarity
+                        }
+                        if (filteredIds.includes(predId)) {
+                            drawConnection(predId, activity.id);
+                        }
+                    });
+                }
+            });
         }
 
-        ReactDOM.render(<GanttDashboard />, document.getElementById('root'));
+        function drawConnection(fromId, toId) {
+            const fromPos = nodePositions[fromId];
+            const toPos = nodePositions[toId];
+            if (!fromPos || !toPos) return;
+
+            const isCritical = criticalPath.includes(fromId) && criticalPath.includes(toId);
+            
+            const startX = fromPos.x + 160;
+            const startY = fromPos.y + 40;
+            const endX = toPos.x;
+            const endY = toPos.y + 40;
+
+            const midX = (startX + endX) / 2;
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`);
+            path.setAttribute('class', `connection-path ${isCritical ? 'critical' : ''}`);
+            path.setAttribute('marker-end', isCritical ? 'url(#arrowhead-critical)' : 'url(#arrowhead)');
+            connectionsSvg.appendChild(path);
+        }
+
+        // Render Matrix View
+        function renderMatrixView() {
+            const showCriticalOnly = filterCritical.checked;
+            const releaseFilter = filterRelease.value;
+            const searchTerm = searchInput.value.toLowerCase();
+
+            let filtered = activities.filter(a => {
+                if (showCriticalOnly && !criticalPath.includes(a.id) && !a.is_milestone) return false;
+                if (releaseFilter !== 'all' && a.release !== releaseFilter && !a.is_milestone) return false;
+                if (searchTerm && !a.attivita.toLowerCase().includes(searchTerm) && !a.id.toLowerCase().includes(searchTerm)) return false;
+                return true;
+            });
+
+            matrixBody.innerHTML = filtered.map(a => {
+                const statusClass = a.status.toLowerCase().replace(/\s+/g, '-');
+                const releaseClass = a.release ? a.release.toLowerCase() : '';
+                const isCritical = criticalPath.includes(a.id);
+                
+                return `
+                    <tr class="${isCritical ? 'critical' : ''}">
+                        <td class="cell-id">${a.id}</td>
+                        <td class="cell-activity">${a.attivita}</td>
+                        <td>${a.area || '-'}</td>
+                        <td>${a.owner || '-'}</td>
+                        <td>${a.release ? `<span class="release-badge ${releaseClass}">${a.release}</span>` : '-'}</td>
+                        <td class="cell-dates">${a.inizio} → ${a.fine}</td>
+                        <td class="cell-status"><span class="status-badge ${statusClass}">${a.status}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Render Critical Path Sidebar
+        function renderCriticalPath() {
+            criticalList.innerHTML = criticalPath.slice(0, 15).map((id, idx) => {
+                const activity = activities.find(a => a.id === id);
+                if (!activity) return '';
+                return `
+                    <div class="critical-item" data-id="${id}">
+                        <span class="num">${idx + 1}.</span>
+                        <span class="id">${id}</span>
+                        <span class="name">${activity.attivita.length > 25 ? activity.attivita.substring(0, 25) + '...' : activity.attivita}</span>
+                    </div>
+                `;
+            }).join('');
+
+            document.querySelectorAll('.critical-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const id = item.dataset.id;
+                    highlightNode(id);
+                });
+            });
+        }
+
+        // Tooltip
+        function showTooltip(e, activity) {
+            const rect = e.target.getBoundingClientRect();
+            tooltip.querySelector('.tooltip-title').textContent = `${activity.id}: ${activity.attivita}`;
+            tooltip.querySelector('.tooltip-desc').textContent = activity.macro ? `${activity.area} > ${activity.macro}` : activity.area || '';
+            tooltip.querySelector('.tooltip-meta').innerHTML = `
+                <div class="tooltip-meta-item"><span class="label">Owner:</span> ${activity.owner || '-'}</div>
+                <div class="tooltip-meta-item"><span class="label">Release:</span> ${activity.release || '-'}</div>
+                <div class="tooltip-meta-item"><span class="label">Predecessore:</span> ${activity.predecessore || '-'}</div>
+                ${criticalPath.includes(activity.id) ? '<div class="tooltip-meta-item" style="color: var(--critical-red)">🔴 Critical Path</div>' : ''}
+            `;
+            
+            tooltip.style.left = (rect.right + 10) + 'px';
+            tooltip.style.top = rect.top + 'px';
+            tooltip.classList.add('visible');
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove('visible');
+        }
+
+        function highlightNode(id) {
+            const node = document.querySelector(`.activity-node[data-id="${id}"]`);
+            if (node) {
+                node.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                node.style.transform = 'scale(1.1)';
+                node.style.boxShadow = '0 0 20px var(--accent-blue)';
+                setTimeout(() => {
+                    node.style.transform = '';
+                    node.style.boxShadow = '';
+                }, 2000);
+            }
+        }
+
+        function highlightConnections(id) {
+            // Reset all paths
+            document.querySelectorAll('.connection-path').forEach(p => {
+                p.style.strokeWidth = '';
+                p.style.opacity = '';
+            });
+            // Could highlight specific connections here
+        }
+
+        // View Toggle
+        viewBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                viewBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                if (btn.dataset.view === 'flow') {
+                    flowView.classList.remove('hidden');
+                    matrixView.classList.remove('active');
+                } else {
+                    flowView.classList.add('hidden');
+                    matrixView.classList.add('active');
+                    renderMatrixView();
+                }
+            });
+        });
+
+        // Filters
+        filterCritical.addEventListener('change', () => {
+            renderFlowView();
+            renderMatrixView();
+        });
+
+        filterRelease.addEventListener('change', () => {
+            renderFlowView();
+            renderMatrixView();
+        });
+
+        searchInput.addEventListener('input', () => {
+            renderFlowView();
+            renderMatrixView();
+        });
+
+        // Release card click
+        document.querySelectorAll('.release-card').forEach(card => {
+            card.addEventListener('click', () => {
+                filterRelease.value = card.dataset.release;
+                renderFlowView();
+                renderMatrixView();
+            });
+        });
+
+        // Initialize
+        renderFlowView();
+        renderCriticalPath();
     </script>
 </body>
 </html>
