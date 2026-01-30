@@ -282,14 +282,14 @@
         .connection-path {
             fill: none;
             stroke: var(--border-color);
-            stroke-width: 2;
-            opacity: 0.6;
+            stroke-width: 1;
+            opacity: 0.5;
         }
 
         .connection-path.critical {
             stroke: var(--critical-red);
-            stroke-width: 3;
-            opacity: 0.8;
+            stroke-width: 1.5;
+            opacity: 0.7;
         }
 
         .connection-arrow {
@@ -304,20 +304,20 @@
         .activity-node {
             position: absolute;
             background: var(--bg-node);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 12px 16px;
-            min-width: 160px;
-            max-width: 200px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+            min-width: 120px;
+            max-width: 150px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 10;
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         .activity-node:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
             z-index: 20;
         }
 
@@ -331,11 +331,11 @@
             position: absolute;
             top: -1px;
             right: -1px;
-            width: 14px;
-            height: 14px;
+            width: 8px;
+            height: 8px;
             background: var(--critical-red);
             border-radius: 50%;
-            box-shadow: 0 0 8px var(--critical-red);
+            box-shadow: 0 0 4px var(--critical-red);
         }
 
         .activity-node.milestone {
@@ -367,7 +367,7 @@
 
         .node-id {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 14px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--accent-cyan);
         }
@@ -377,9 +377,9 @@
         }
 
         .node-title {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 500;
-            line-height: 1.4;
+            line-height: 1.3;
             color: var(--text-primary);
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -389,22 +389,22 @@
 
         .node-dates {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
+            font-size: 9px;
             color: var(--text-muted);
-            margin-top: 8px;
+            margin-top: 4px;
         }
 
         .node-status {
             position: absolute;
-            bottom: -8px;
+            bottom: -6px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 2px 10px;
-            border-radius: 10px;
-            font-size: 9px;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 8px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .node-status.done { background: var(--done-green); color: white; }
@@ -751,8 +751,8 @@
                 width: 280px;
             }
             .activity-node {
-                min-width: 140px;
-                max-width: 180px;
+                min-width: 100px;
+                max-width: 130px;
             }
         }
 
@@ -1089,11 +1089,11 @@
             flowCanvas.querySelectorAll('.activity-node').forEach(n => n.remove());
             connectionsSvg.innerHTML = `
                 <defs>
-                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                        <polygon points="0 0, 10 3.5, 0 7" class="connection-arrow" />
+                    <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                        <polygon points="0 0, 6 2, 0 4" class="connection-arrow" />
                     </marker>
-                    <marker id="arrowhead-critical" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                        <polygon points="0 0, 10 3.5, 0 7" class="connection-arrow critical" />
+                    <marker id="arrowhead-critical" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                        <polygon points="0 0, 6 2, 0 4" class="connection-arrow critical" />
                     </marker>
                 </defs>
             `;
@@ -1168,10 +1168,10 @@
 
             const isCritical = criticalPath.includes(fromId) && criticalPath.includes(toId);
             
-            const startX = fromPos.x + 160;
-            const startY = fromPos.y + 40;
+            const startX = fromPos.x + 120;
+            const startY = fromPos.y + 30;
             const endX = toPos.x;
-            const endY = toPos.y + 40;
+            const endY = toPos.y + 30;
 
             const midX = (startX + endX) / 2;
             
