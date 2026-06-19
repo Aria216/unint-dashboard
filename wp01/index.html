@@ -1,1329 +1,256 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard GANTT WP01 - Progetto CRM UNINT</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #0F172A;
-            --bg-secondary: #1E293B;
-            --bg-card: #334155;
-            --bg-node: #1E3A5F;
-            --text-primary: #F8FAFC;
-            --text-secondary: #94A3B8;
-            --text-muted: #64748B;
-            --accent-blue: #3B82F6;
-            --accent-green: #22C55E;
-            --accent-orange: #F59E0B;
-            --accent-red: #EF4444;
-            --accent-purple: #8B5CF6;
-            --accent-cyan: #06B6D4;
-            --critical-red: #DC2626;
-            --done-green: #10B981;
-            --progress-blue: #3B82F6;
-            --todo-gray: #64748B;
-            --milestone-gold: #FBBF24;
-            --border-color: #475569;
-            --shadow-lg: 0 20px 40px rgba(0,0,0,0.4);
-            --shadow-md: 0 10px 20px rgba(0,0,0,0.3);
-            --radius-sm: 6px;
-            --radius-md: 10px;
-            --radius-lg: 16px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-            padding: 20px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .logo {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 18px;
-        }
-
-        .title-group h1 {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .title-group .subtitle {
-            font-size: 13px;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .version-badge {
-            background: var(--accent-blue);
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .header-stats {
-            display: flex;
-            gap: 24px;
-            align-items: center;
-        }
-
-        .stat-box {
-            text-align: center;
-            padding: 8px 16px;
-            background: var(--bg-card);
-            border-radius: var(--radius-md);
-            min-width: 80px;
-        }
-
-        .stat-box .number {
-            font-size: 24px;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .stat-box .label {
-            font-size: 11px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-box.critical .number {
-            color: var(--critical-red);
-        }
-
-        .stat-box.golive {
-            background: linear-gradient(135deg, var(--accent-green), #059669);
-        }
-
-        .stat-box.golive .number {
-            font-size: 16px;
-        }
-
-        /* Controls Bar */
-        .controls {
-            padding: 16px 32px;
-            background: var(--bg-secondary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .view-toggle {
-            display: flex;
-            gap: 4px;
-            background: var(--bg-card);
-            padding: 4px;
-            border-radius: var(--radius-md);
-        }
-
-        .view-btn {
-            padding: 8px 16px;
-            border: none;
-            background: transparent;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-radius: var(--radius-sm);
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .view-btn:hover {
-            color: var(--text-primary);
-        }
-
-        .view-btn.active {
-            background: var(--accent-blue);
-            color: white;
-        }
-
-        .filters {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .filter-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            padding: 8px 12px;
-            background: var(--bg-card);
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-        }
-
-        .filter-checkbox input {
-            accent-color: var(--critical-red);
-            width: 16px;
-            height: 16px;
-        }
-
-        .filter-select {
-            padding: 8px 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 13px;
-            cursor: pointer;
-        }
-
-        .search-box {
-            position: relative;
-        }
-
-        .search-box input {
-            padding: 8px 12px 8px 36px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 13px;
-            width: 200px;
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-        }
-
-        .search-box::before {
-            content: "🔍";
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 14px;
-        }
-
-        /* Main Content */
-        .main-content {
-            display: flex;
-            min-height: calc(100vh - 160px);
-        }
-
-        /* Flow View */
-        .flow-container {
-            flex: 1;
-            padding: 32px;
-            overflow: auto;
-            position: relative;
-        }
-
-        .flow-canvas {
-            position: relative;
-            min-width: 1400px;
-            min-height: 900px;
-        }
-
-        /* SVG for connections */
-        .connections-svg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .connection-path {
-            fill: none;
-            stroke: var(--border-color);
-            stroke-width: 1;
-            opacity: 0.5;
-        }
-
-        .connection-path.critical {
-            stroke: var(--critical-red);
-            stroke-width: 1.5;
-            opacity: 0.7;
-        }
-
-        .connection-arrow {
-            fill: var(--border-color);
-        }
-
-        .connection-arrow.critical {
-            fill: var(--critical-red);
-        }
-
-        /* Activity Nodes */
-        .activity-node {
-            position: absolute;
-            background: var(--bg-node);
-            border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: 8px 10px;
-            min-width: 120px;
-            max-width: 150px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 10;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        .activity-node:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            z-index: 20;
-        }
-
-        .activity-node.critical {
-            border-color: var(--critical-red);
-            background: linear-gradient(135deg, #1E293B 0%, #2D1B1B 100%);
-        }
-
-        .activity-node.critical::before {
-            content: "";
-            position: absolute;
-            top: -1px;
-            right: -1px;
-            width: 8px;
-            height: 8px;
-            background: var(--critical-red);
-            border-radius: 50%;
-            box-shadow: 0 0 4px var(--critical-red);
-        }
-
-        .activity-node.milestone {
-            background: linear-gradient(135deg, #422006 0%, #1E293B 100%);
-            border-color: var(--milestone-gold);
-        }
-
-        .activity-node.done {
-            border-color: var(--done-green);
-            opacity: 0.85;
-        }
-
-        .activity-node.in-progress {
-            border-color: var(--progress-blue);
-            animation: pulse-border 2s infinite;
-        }
-
-        @keyframes pulse-border {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-            50% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
-        }
-
-        .node-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-
-        .node-id {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--accent-cyan);
-        }
-
-        .activity-node.critical .node-id {
-            color: var(--critical-red);
-        }
-
-        .node-title {
-            font-size: 10px;
-            font-weight: 500;
-            line-height: 1.3;
-            color: var(--text-primary);
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .node-dates {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 9px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .node-status {
-            position: absolute;
-            bottom: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 1px 6px;
-            border-radius: 8px;
-            font-size: 8px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .node-status.done { background: var(--done-green); color: white; }
-        .node-status.in-progress { background: var(--progress-blue); color: white; }
-        .node-status.to-do { background: var(--todo-gray); color: white; }
-        .node-status.blocked { background: var(--accent-red); color: white; }
-        .node-status.in-test { background: var(--accent-purple); color: white; }
-        .node-status.milestone { background: var(--milestone-gold); color: #1E293B; }
-
-        /* Sidebar */
-        .sidebar {
-            width: 320px;
-            background: var(--bg-secondary);
-            border-left: 1px solid var(--border-color);
-            padding: 24px;
-            overflow-y: auto;
-        }
-
-        .sidebar-section {
-            margin-bottom: 28px;
-        }
-
-        .sidebar-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .sidebar-title .icon {
-            font-size: 16px;
-        }
-
-        /* Critical Path List */
-        .critical-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .critical-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
-            background: var(--bg-card);
-            border-radius: var(--radius-sm);
-            border-left: 3px solid var(--critical-red);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .critical-item:hover {
-            background: var(--bg-node);
-            transform: translateX(4px);
-        }
-
-        .critical-item .num {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            color: var(--text-muted);
-            min-width: 20px;
-        }
-
-        .critical-item .id {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--critical-red);
-            min-width: 40px;
-        }
-
-        .critical-item .name {
-            font-size: 12px;
-            color: var(--text-primary);
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Release Cards */
-        .release-cards {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .release-card {
-            background: var(--bg-card);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            border-left: 4px solid;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .release-card:hover {
-            transform: translateX(4px);
-        }
-
-        .release-card.r1 { border-color: var(--accent-blue); }
-        .release-card.r2 { border-color: var(--accent-green); }
-        .release-card.r3 { border-color: var(--accent-orange); }
-
-        .release-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .release-name {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .release-date {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        .release-progress {
-            height: 6px;
-            background: var(--bg-primary);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .release-progress-bar {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.5s ease;
-        }
-
-        .release-card.r1 .release-progress-bar { background: var(--accent-blue); }
-        .release-card.r2 .release-progress-bar { background: var(--accent-green); }
-        .release-card.r3 .release-progress-bar { background: var(--accent-orange); }
-
-        .release-stats {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .release-count {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 600;
-        }
-
-        /* Glossary */
-        .glossary {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .glossary-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
-
-        .glossary-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
-        .glossary-dot.critical { background: var(--critical-red); box-shadow: 0 0 6px var(--critical-red); }
-        .glossary-dot.done { background: var(--done-green); }
-        .glossary-dot.progress { background: var(--progress-blue); }
-        .glossary-dot.todo { background: var(--todo-gray); }
-        .glossary-dot.milestone { background: var(--milestone-gold); }
-
-        /* Matrix View */
-        .matrix-container {
-            display: none;
-            flex: 1;
-            padding: 32px;
-            overflow: auto;
-        }
-
-        .matrix-container.active {
-            display: block;
-        }
-
-        .flow-container.hidden {
-            display: none;
-        }
-
-        .matrix-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: var(--bg-secondary);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-        }
-
-        .matrix-table th,
-        .matrix-table td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .matrix-table th {
-            background: var(--bg-card);
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-secondary);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .matrix-table tbody tr {
-            transition: all 0.2s;
-        }
-
-        .matrix-table tbody tr:hover {
-            background: var(--bg-card);
-        }
-
-        .matrix-table tbody tr.critical {
-            background: rgba(220, 38, 38, 0.1);
-        }
-
-        .matrix-table .cell-id {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 600;
-            color: var(--accent-cyan);
-        }
-
-        .matrix-table tr.critical .cell-id {
-            color: var(--critical-red);
-        }
-
-        .matrix-table .cell-activity {
-            max-width: 300px;
-        }
-
-        .matrix-table .cell-dates {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .matrix-table .cell-status {
-            text-align: center;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .status-badge.done { background: var(--done-green); color: white; }
-        .status-badge.in-progress { background: var(--progress-blue); color: white; }
-        .status-badge.to-do { background: var(--todo-gray); color: white; }
-        .status-badge.blocked { background: var(--accent-red); color: white; }
-        .status-badge.in-test { background: var(--accent-purple); color: white; }
-
-        .release-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-
-        .release-badge.r1 { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
-        .release-badge.r2 { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); }
-        .release-badge.r3 { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); }
-
-        /* Tooltip */
-        .tooltip {
-            position: fixed;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            max-width: 320px;
-            box-shadow: var(--shadow-lg);
-            z-index: 1000;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .tooltip.visible {
-            opacity: 1;
-        }
-
-        .tooltip-title {
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .tooltip-desc {
-            font-size: 13px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-            margin-bottom: 12px;
-        }
-
-        .tooltip-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            font-size: 12px;
-        }
-
-        .tooltip-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .tooltip-meta-item .label {
-            color: var(--text-muted);
-        }
-
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .sidebar {
-                width: 280px;
-            }
-            .activity-node {
-                min-width: 100px;
-                max-width: 130px;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .header-stats {
-                display: none;
-            }
-            .sidebar {
-                display: none;
-            }
-        }
-    </style>
-</head>
-<body>
-    <header class="header">
-        <div class="header-left">
-            <div class="logo">📊</div>
-            <div class="title-group">
-                <h1>Dashboard GANTT WP01</h1>
-                <div class="subtitle">
-                    Progetto CRM UNINT - CRMPartners
-                    <span class="version-badge">v2.1 - 30/01/2026</span>
-                </div>
-            </div>
-        </div>
-        <div class="header-stats">
-            <div class="stat-box">
-                <div class="number">46</div>
-                <div class="label">attività</div>
-            </div>
-            <div class="stat-box critical">
-                <div class="number">25</div>
-                <div class="label">critical path</div>
-            </div>
-            <div class="stat-box golive">
-                <div class="number">Go-Live: 31/03/2026</div>
-                <div class="label">target</div>
-            </div>
-        </div>
-    </header>
-
-    <div class="controls">
-        <div class="view-toggle">
-            <button class="view-btn active" data-view="flow">
-                📈 Flusso
-            </button>
-            <button class="view-btn" data-view="matrix">
-                📋 Matrice
-            </button>
-        </div>
-        <div class="filters">
-            <label class="filter-checkbox">
-                <input type="checkbox" id="filterCritical" checked>
-                <span style="color: var(--critical-red)">● Critical Path</span>
-            </label>
-            <select class="filter-select" id="filterRelease">
-                <option value="all">Tutte le Release</option>
-                <option value="R1">REL1: CRM Core</option>
-                <option value="R2">REL2: Marketing</option>
-                <option value="R3">REL3: Analytics</option>
-            </select>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Cerca attività...">
-            </div>
-        </div>
-    </div>
-
-    <div class="main-content">
-        <div class="flow-container" id="flowView">
-            <div class="flow-canvas" id="flowCanvas">
-                <svg class="connections-svg" id="connectionsSvg">
-                    <defs>
-                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" class="connection-arrow" />
-                        </marker>
-                        <marker id="arrowhead-critical" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" class="connection-arrow critical" />
-                        </marker>
-                    </defs>
-                </svg>
-                <!-- Nodes will be generated here -->
-            </div>
-        </div>
-
-        <div class="matrix-container" id="matrixView">
-            <table class="matrix-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Attività</th>
-                        <th>Area</th>
-                        <th>Owner</th>
-                        <th>Release</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="matrixBody">
-                    <!-- Rows will be generated here -->
-                </tbody>
-            </table>
-        </div>
-
-        <aside class="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-title">
-                    <span class="icon">🔴</span>
-                    Critical Path (25 attività)
-                </div>
-                <div class="critical-list" id="criticalList">
-                    <!-- Critical path items will be generated here -->
-                </div>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-title">
-                    <span class="icon">📦</span>
-                    Release
-                </div>
-                <div class="release-cards" id="releaseCards">
-                    <div class="release-card r1" data-release="R1">
-                        <div class="release-header">
-                            <span class="release-name">REL1: CRM Core</span>
-                            <span class="release-date">30/01/2026</span>
-                        </div>
-                        <div class="release-progress">
-                            <div class="release-progress-bar" style="width: 54%"></div>
-                        </div>
-                        <div class="release-stats">
-                            <span><span class="release-count">14</span> / 26 completate</span>
-                            <span>54%</span>
-                        </div>
-                    </div>
-                    <div class="release-card r2" data-release="R2">
-                        <div class="release-header">
-                            <span class="release-name">REL2: Marketing</span>
-                            <span class="release-date">01/03/2026</span>
-                        </div>
-                        <div class="release-progress">
-                            <div class="release-progress-bar" style="width: 29%"></div>
-                        </div>
-                        <div class="release-stats">
-                            <span><span class="release-count">5</span> / 17 completate</span>
-                            <span>29%</span>
-                        </div>
-                    </div>
-                    <div class="release-card r3" data-release="R3">
-                        <div class="release-header">
-                            <span class="release-name">REL3: ESSE3 + Analytics</span>
-                            <span class="release-date">15/03/2026</span>
-                        </div>
-                        <div class="release-progress">
-                            <div class="release-progress-bar" style="width: 0%"></div>
-                        </div>
-                        <div class="release-stats">
-                            <span><span class="release-count">0</span> / 1 completate</span>
-                            <span>0%</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-title">
-                    <span class="icon">📖</span>
-                    Glossario
-                </div>
-                <div class="glossary">
-                    <div class="glossary-item">
-                        <span class="glossary-dot critical"></span>
-                        <span>Critical Path</span>
-                    </div>
-                    <div class="glossary-item">
-                        <span class="glossary-dot done"></span>
-                        <span>Done</span>
-                    </div>
-                    <div class="glossary-item">
-                        <span class="glossary-dot progress"></span>
-                        <span>In Progress</span>
-                    </div>
-                    <div class="glossary-item">
-                        <span class="glossary-dot todo"></span>
-                        <span>To Do</span>
-                    </div>
-                    <div class="glossary-item">
-                        <span class="glossary-dot milestone"></span>
-                        <span>Milestone</span>
-                    </div>
-                </div>
-            </div>
-        </aside>
-    </div>
-
-    <div class="tooltip" id="tooltip">
-        <div class="tooltip-title"></div>
-        <div class="tooltip-desc"></div>
-        <div class="tooltip-meta"></div>
-    </div>
-
-    <script>
-        // Data from Gantt
-        const activities = [
-            { id: "REL1", wp: "", area: "", macro: "", attivita: "RELEASE 1: CRM Operativo", owner: "", predecessore: "", release: "", inizio: "07/01", fine: "30/01", status: "Milestone", is_milestone: true, critical: true },
-            { id: "0.1", wp: "WP01", area: "Accesso", macro: "Setup", attivita: "Attivazione Licenze Zoho ONE", owner: "Sales", predecessore: "", release: "R1", inizio: "02/01", fine: "10/01", status: "Done", is_milestone: false, critical: true },
-            { id: "0.2", wp: "WP01", area: "Accesso", macro: "Setup", attivita: "Setup Ambiente CRM", owner: "Solution", predecessore: "0.1", release: "R1", inizio: "07/01", fine: "10/01", status: "Done", is_milestone: false, critical: true },
-            { id: "1.1", wp: "WP01", area: "Moduli", macro: "Raccolta Lead", attivita: "Config modulo Lead (touchpoint)", owner: "Solution", predecessore: "0.2, 7.1, 7.2", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
-            { id: "1.2", wp: "WP01", area: "Moduli", macro: "Operazioni", attivita: "Config modulo Operazioni", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
-            { id: "1.3", wp: "WP01", area: "Moduli", macro: "Gestione Lead", attivita: "Interesse Formativo", owner: "Solution", predecessore: "0.2, 7.1, 7.2", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
-            { id: "1.4", wp: "WP01", area: "Moduli", macro: "Corsi", attivita: "Config modulo Corsi", owner: "Solution", predecessore: "0.2, 7.3", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
-            { id: "1.5", wp: "WP01", area: "Moduli", macro: "Carriere", attivita: "Modulo Carriere base", owner: "Solution", predecessore: "0.2, 7.1, 7.2, 7.3", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
-            { id: "1.6", wp: "WP01", area: "Dati Moduli", macro: "Config Dettaglio", attivita: "Config Campi specifici", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "07/01", fine: "19/01", status: "In progress", is_milestone: false, critical: true },
-            { id: "1.7", wp: "WP01", area: "Moduli", macro: "Contatti", attivita: "Modulo Contatto", owner: "Solution", predecessore: "1.1", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
-            { id: "1.8", wp: "WP01", area: "Moduli", macro: "Consensi", attivita: "Gestione Consensi GDPR", owner: "Solution", predecessore: "1.1", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
-            { id: "1.9", wp: "WP01", area: "Moduli", macro: "Consensi", attivita: "Workflow rinnovo Consensi", owner: "Solution", predecessore: "1.8", release: "R1", inizio: "07/01", fine: "19/01", status: "In progress", is_milestone: false, critical: true },
-            { id: "1.10", wp: "WP01", area: "Moduli", macro: "Operazioni", attivita: "Iter immatricolazione", owner: "Solution", predecessore: "1.1-1.6", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
-            { id: "1.11", wp: "WP01", area: "Moduli", macro: "Operazioni", attivita: "Gestione prove VPI", owner: "Solution", predecessore: "1.1-1.6", release: "R1", inizio: "19/01", fine: "31/01", status: "In test", is_milestone: false, critical: true },
-            { id: "2.1", wp: "WP01", area: "Data set", macro: "Struttura Dati", attivita: "Database Scuole/Università", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "19/01", fine: "31/01", status: "Done", is_milestone: false, critical: true },
-            { id: "2.3", wp: "WP01", area: "Portale", macro: "Iscrizioni", attivita: "Gestione Iscrizioni eventi", owner: "Solution", predecessore: "1.1-1.6,7.1-7.3", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: true },
-            { id: "2.4", wp: "WP01", area: "Moduli", macro: "Riunioni", attivita: "Modulo Riunioni/Colloqui", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: true },
-            { id: "2.5", wp: "WP01", area: "Moduli", macro: "Riunioni", attivita: "Automatismi Riunioni", owner: "Solution", predecessore: "2.4", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
-            { id: "3.1", wp: "WP01", area: "Bacini Utenze", macro: "Uffici", attivita: "Separazione Uffici OR/WOSS/SCDL", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: true },
-            { id: "3.2", wp: "WP01", area: "Forms", macro: "Form specifici", attivita: "Forms Orientamento", owner: "Solution", predecessore: "2.1", release: "R1", inizio: "19/01", fine: "31/01", status: "In test", is_milestone: false, critical: false },
-            { id: "4.1", wp: "WP01", area: "Blueprint", macro: "Automatismi", attivita: "Workflows/CF core", owner: "Solution", predecessore: "1.11,2.1,3.1", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: true },
-            { id: "4.2", wp: "WP01", area: "Blueprint", macro: "Automatismi", attivita: "Template email", owner: "Solution", predecessore: "4.1", release: "R1", inizio: "19/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
-            { id: "4.3", wp: "WP01", area: "Workdrive", macro: "Documentazioni", attivita: "Integrazione Workdrive", owner: "Solution", predecessore: "0.2", release: "R1", inizio: "19/01", fine: "31/01", status: "To Do", is_milestone: false, critical: false },
-            { id: "4.4", wp: "WP01", area: "Blueprint", macro: "Gestione CRM", attivita: "Gestione duplicati", owner: "Solution", predecessore: "1.1,1.7", release: "R1", inizio: "19/01", fine: "31/01", status: "Done", is_milestone: false, critical: false },
-            { id: "5.1", wp: "WP01", area: "Moduli", macro: "Campaigns", attivita: "UTM Trackers", owner: "Solution", predecessore: "4.1", release: "R2", inizio: "02/02", fine: "13/02", status: "In progress", is_milestone: false, critical: true },
-            { id: "5.2", wp: "WP01", area: "Moduli", macro: "Contratti", attivita: "Accordi Marketing (Accounts)", owner: "Solution", predecessore: "5.1", release: "R2", inizio: "02/02", fine: "13/02", status: "Done", is_milestone: false, critical: true },
-            { id: "5.3", wp: "WP01", area: "Contatti", macro: "Bacini", attivita: "Gestione Bacini accordi", owner: "Solution", predecessore: "5.2", release: "R2", inizio: "02/02", fine: "13/02", status: "Done", is_milestone: false, critical: true },
-            { id: "5.4", wp: "WP01", area: "Contatti", macro: "Aziende", attivita: "Anagrafica aziende", owner: "Solution", predecessore: "5.2", release: "R2", inizio: "02/02", fine: "13/02", status: "Done", is_milestone: false, critical: false },
-            { id: "5.5", wp: "WP01", area: "Automazioni", macro: "Contratti", attivita: "Automatizzazione contatto", owner: "Solution", predecessore: "5.3", release: "R2", inizio: "02/02", fine: "13/02", status: "To Do", is_milestone: false, critical: false },
-            { id: "5.6", wp: "WP01", area: "Forms", macro: "Forms", attivita: "Wireframe Landing", owner: "Solution", predecessore: "5.1", release: "R2", inizio: "02/02", fine: "13/02", status: "To Do", is_milestone: false, critical: false },
-            { id: "5.7", wp: "WP01", area: "Form", macro: "Forms", attivita: "Landing Triennali/Magistrali", owner: "Solution", predecessore: "5.7", release: "R2", inizio: "02/02", fine: "13/02", status: "To Do", is_milestone: false, critical: false },
-            { id: "5.8", wp: "WP01", area: "Survey", macro: "Survey", attivita: "Survey config", owner: "Solution", predecessore: "1.5,2.3", release: "R2", inizio: "13/02", fine: "01/03", status: "To Do", is_milestone: false, critical: false },
-            { id: "5.9", wp: "WP01", area: "Survey", macro: "Survey", attivita: "Invio automatico survey", owner: "Solution", predecessore: "5.9", release: "R2", inizio: "13/02", fine: "01/03", status: "To Do", is_milestone: false, critical: false },
-            { id: "6.1", wp: "WP01", area: "Integrazioni", macro: "Integrazioni", attivita: "Integrazione Marketing GAds/Meta", owner: "Solution", predecessore: "5.1", release: "R2", inizio: "02/02", fine: "01/03", status: "To Do", is_milestone: false, critical: true },
-            { id: "6.2", wp: "WP01", area: "Integrazioni", macro: "Integrazioni", attivita: "WhatsApp Business API", owner: "Solution", predecessore: "1.1", release: "R2", inizio: "01/02", fine: "01/03", status: "In progress", is_milestone: false, critical: false },
-            { id: "6.3", wp: "WP01", area: "Integrazioni", macro: "Integrazioni", attivita: "VoIP Integration", owner: "Solution + Dev", predecessore: "1.1", release: "R2", inizio: "01/02", fine: "01/03", status: "In progress", is_milestone: false, critical: false },
-            { id: "6.4", wp: "WP01", area: "Integrazioni", macro: "Integrazioni", attivita: "LinkedIn", owner: "Solution + Dev", predecessore: "1.1", release: "R2", inizio: "01/03", fine: "15/03", status: "To Do", is_milestone: false, critical: false },
-            { id: "6.5", wp: "WP01", area: "Integrazioni", macro: "Integrazioni", attivita: "Moodle e-learning", owner: "Solution", predecessore: "2.3", release: "R2", inizio: "01/03", fine: "15/03", status: "To Do", is_milestone: false, critical: false },
-            { id: "7.1", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "ESSE3: Stato Int./Registrato", owner: "Developer", predecessore: "0.2", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
-            { id: "7.2", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "ESSE3: Pre-immatricolato", owner: "Developer", predecessore: "7.1", release: "R1", inizio: "07/01", fine: "19/01", status: "Done", is_milestone: false, critical: true },
-            { id: "7.3", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "ESSE3: Carriere", owner: "Developer", predecessore: "7.1", release: "R1", inizio: "07/01", fine: "31/01", status: "Done", is_milestone: false, critical: true },
-            { id: "7.4", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "ESSE3: Sincroniz. Corsi", owner: "Developer", predecessore: "7.1", release: "R2", inizio: "07/01", fine: "31/01", status: "Done", is_milestone: false, critical: false },
-            { id: "7.5", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "ESSE3: Flussi Bi-direzionali", owner: "Developer", predecessore: "7.3", release: "R2", inizio: "07/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
-            { id: "7.6", wp: "WP01", area: "Integrazioni", macro: "ESSE3", attivita: "Connettore ESSE3", owner: "Developer", predecessore: "7.3", release: "R2", inizio: "07/01", fine: "31/01", status: "Done", is_milestone: false, critical: false },
-            { id: "7.7", wp: "WP01", area: "Integrazioni", macro: "Sviluppo", attivita: "Sviluppi Custom", owner: "Developer", predecessore: "", release: "", inizio: "07/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
-            { id: "7.8", wp: "WP01", area: "Integrazioni", macro: "SVI", attivita: "Calls Ufficio Sviluppo", owner: "Developer", predecessore: "", release: "", inizio: "31/01", fine: "31/01", status: "In progress", is_milestone: false, critical: false },
-            { id: "8.1", wp: "WP01", area: "Analytics", macro: "Zoho Analytics", attivita: "Dashboard (Analytics)", owner: "Solution", predecessore: "5.1,6.1", release: "R3", inizio: "02/02", fine: "01/03", status: "In progress", is_milestone: false, critical: false }
-        ];
-
-        const criticalPath = ["0.1", "0.2", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "1.11", "2.1", "2.3", "2.4", "3.1", "4.1", "5.1", "5.2", "5.3", "6.1", "7.1", "7.2", "7.3"];
-
-        // Node positions for flow view (manually arranged for clarity)
-        const nodePositions = {
-            "0.1": { x: 50, y: 100 },
-            "0.2": { x: 250, y: 100 },
-            "7.7": { x: 50, y: 220 },
-            "7.8": { x: 50, y: 340 },
-            "1.2": { x: 450, y: 40 },
-            "1.6": { x: 450, y: 160 },
-            "2.1": { x: 450, y: 280 },
-            "2.4": { x: 450, y: 400 },
-            "3.1": { x: 450, y: 520 },
-            "4.3": { x: 450, y: 640 },
-            "7.1": { x: 450, y: 760 },
-            "2.5": { x: 650, y: 40 },
-            "3.2": { x: 650, y: 160 },
-            "7.2": { x: 650, y: 280 },
-            "7.3": { x: 650, y: 400 },
-            "7.4": { x: 650, y: 520 },
-            "7.5": { x: 650, y: 640 },
-            "7.6": { x: 650, y: 760 },
-            "1.1": { x: 850, y: 40 },
-            "1.3": { x: 850, y: 160 },
-            "1.4": { x: 850, y: 280 },
-            "1.5": { x: 850, y: 400 },
-            "REL1": { x: 1050, y: 40 },
-            "1.7": { x: 1050, y: 160 },
-            "1.8": { x: 1050, y: 280 },
-            "1.9": { x: 1050, y: 400 },
-            "1.10": { x: 1050, y: 520 },
-            "1.11": { x: 1050, y: 640 },
-            "2.3": { x: 1050, y: 760 },
-            "4.1": { x: 1250, y: 160 },
-            "4.2": { x: 1250, y: 280 },
-            "4.4": { x: 1250, y: 400 },
-            "5.1": { x: 1450, y: 100 },
-            "5.2": { x: 1450, y: 220 },
-            "5.3": { x: 1450, y: 340 },
-            "5.4": { x: 1450, y: 460 },
-            "5.5": { x: 1450, y: 580 },
-            "5.6": { x: 1650, y: 100 },
-            "5.7": { x: 1650, y: 220 },
-            "5.8": { x: 1650, y: 340 },
-            "5.9": { x: 1650, y: 460 },
-            "6.1": { x: 1650, y: 580 },
-            "6.2": { x: 1650, y: 700 },
-            "6.3": { x: 1850, y: 100 },
-            "6.4": { x: 1850, y: 220 },
-            "6.5": { x: 1850, y: 340 },
-            "8.1": { x: 1850, y: 460 }
-        };
-
-        // Generate default positions for missing nodes
-        let defaultX = 50, defaultY = 880;
-        activities.forEach(a => {
-            if (!nodePositions[a.id]) {
-                nodePositions[a.id] = { x: defaultX, y: defaultY };
-                defaultX += 200;
-                if (defaultX > 1800) {
-                    defaultX = 50;
-                    defaultY += 120;
-                }
-            }
-        });
-
-        // DOM Elements
-        const flowCanvas = document.getElementById('flowCanvas');
-        const connectionsSvg = document.getElementById('connectionsSvg');
-        const matrixBody = document.getElementById('matrixBody');
-        const criticalList = document.getElementById('criticalList');
-        const tooltip = document.getElementById('tooltip');
-        const viewBtns = document.querySelectorAll('.view-btn');
-        const flowView = document.getElementById('flowView');
-        const matrixView = document.getElementById('matrixView');
-        const filterCritical = document.getElementById('filterCritical');
-        const filterRelease = document.getElementById('filterRelease');
-        const searchInput = document.getElementById('searchInput');
-
-        // Render Flow View
-        function renderFlowView() {
-            // Clear existing nodes (keep SVG)
-            flowCanvas.querySelectorAll('.activity-node').forEach(n => n.remove());
-            connectionsSvg.innerHTML = `
-                <defs>
-                    <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
-                        <polygon points="0 0, 6 2, 0 4" class="connection-arrow" />
-                    </marker>
-                    <marker id="arrowhead-critical" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
-                        <polygon points="0 0, 6 2, 0 4" class="connection-arrow critical" />
-                    </marker>
-                </defs>
-            `;
-
-            const showCriticalOnly = filterCritical.checked;
-            const releaseFilter = filterRelease.value;
-            const searchTerm = searchInput.value.toLowerCase();
-
-            // Filter activities
-            let filtered = activities.filter(a => {
-                if (showCriticalOnly && !criticalPath.includes(a.id) && !a.is_milestone) return false;
-                if (releaseFilter !== 'all' && a.release !== releaseFilter && !a.is_milestone) return false;
-                if (searchTerm && !a.attivita.toLowerCase().includes(searchTerm) && !a.id.toLowerCase().includes(searchTerm)) return false;
-                return true;
-            });
-
-            // Create nodes
-            filtered.forEach(activity => {
-                const pos = nodePositions[activity.id] || { x: 0, y: 0 };
-                const node = document.createElement('div');
-                node.className = 'activity-node';
-                node.dataset.id = activity.id;
-                
-                if (criticalPath.includes(activity.id)) node.classList.add('critical');
-                if (activity.is_milestone) node.classList.add('milestone');
-                
-                const statusClass = activity.status.toLowerCase().replace(/\s+/g, '-');
-                if (statusClass === 'done') node.classList.add('done');
-                if (statusClass === 'in-progress') node.classList.add('in-progress');
-
-                node.style.left = pos.x + 'px';
-                node.style.top = pos.y + 'px';
-
-                node.innerHTML = `
-                    <div class="node-header">
-                        <span class="node-id">${activity.id}</span>
-                    </div>
-                    <div class="node-title">${activity.attivita.length > 35 ? activity.attivita.substring(0, 35) + '...' : activity.attivita}</div>
-                    <div class="node-dates">${activity.inizio} → ${activity.fine}</div>
-                    <span class="node-status ${statusClass}">${activity.status}</span>
-                `;
-
-                node.addEventListener('mouseenter', (e) => showTooltip(e, activity));
-                node.addEventListener('mouseleave', hideTooltip);
-                node.addEventListener('click', () => highlightConnections(activity.id));
-
-                flowCanvas.appendChild(node);
-            });
-
-            // Draw connections
-            const filteredIds = filtered.map(a => a.id);
-            filtered.forEach(activity => {
-                if (activity.predecessore) {
-                    const preds = activity.predecessore.split(',').map(p => p.trim());
-                    preds.forEach(predId => {
-                        // Handle range predecessors like "1.1-1.6"
-                        if (predId.includes('-') && !predId.startsWith('7')) {
-                            return; // Skip range predecessors for visual clarity
-                        }
-                        if (filteredIds.includes(predId)) {
-                            drawConnection(predId, activity.id);
-                        }
-                    });
-                }
-            });
-        }
-
-        function drawConnection(fromId, toId) {
-            const fromPos = nodePositions[fromId];
-            const toPos = nodePositions[toId];
-            if (!fromPos || !toPos) return;
-
-            const isCritical = criticalPath.includes(fromId) && criticalPath.includes(toId);
-            
-            const startX = fromPos.x + 120;
-            const startY = fromPos.y + 30;
-            const endX = toPos.x;
-            const endY = toPos.y + 30;
-
-            const midX = (startX + endX) / 2;
-            
-            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.setAttribute('d', `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`);
-            path.setAttribute('class', `connection-path ${isCritical ? 'critical' : ''}`);
-            path.setAttribute('marker-end', isCritical ? 'url(#arrowhead-critical)' : 'url(#arrowhead)');
-            connectionsSvg.appendChild(path);
-        }
-
-        // Render Matrix View
-        function renderMatrixView() {
-            const showCriticalOnly = filterCritical.checked;
-            const releaseFilter = filterRelease.value;
-            const searchTerm = searchInput.value.toLowerCase();
-
-            let filtered = activities.filter(a => {
-                if (showCriticalOnly && !criticalPath.includes(a.id) && !a.is_milestone) return false;
-                if (releaseFilter !== 'all' && a.release !== releaseFilter && !a.is_milestone) return false;
-                if (searchTerm && !a.attivita.toLowerCase().includes(searchTerm) && !a.id.toLowerCase().includes(searchTerm)) return false;
-                return true;
-            });
-
-            matrixBody.innerHTML = filtered.map(a => {
-                const statusClass = a.status.toLowerCase().replace(/\s+/g, '-');
-                const releaseClass = a.release ? a.release.toLowerCase() : '';
-                const isCritical = criticalPath.includes(a.id);
-                
-                return `
-                    <tr class="${isCritical ? 'critical' : ''}">
-                        <td class="cell-id">${a.id}</td>
-                        <td class="cell-activity">${a.attivita}</td>
-                        <td>${a.area || '-'}</td>
-                        <td>${a.owner || '-'}</td>
-                        <td>${a.release ? `<span class="release-badge ${releaseClass}">${a.release}</span>` : '-'}</td>
-                        <td class="cell-dates">${a.inizio} → ${a.fine}</td>
-                        <td class="cell-status"><span class="status-badge ${statusClass}">${a.status}</span></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // Render Critical Path Sidebar
-        function renderCriticalPath() {
-            criticalList.innerHTML = criticalPath.slice(0, 15).map((id, idx) => {
-                const activity = activities.find(a => a.id === id);
-                if (!activity) return '';
-                return `
-                    <div class="critical-item" data-id="${id}">
-                        <span class="num">${idx + 1}.</span>
-                        <span class="id">${id}</span>
-                        <span class="name">${activity.attivita.length > 25 ? activity.attivita.substring(0, 25) + '...' : activity.attivita}</span>
-                    </div>
-                `;
-            }).join('');
-
-            document.querySelectorAll('.critical-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const id = item.dataset.id;
-                    highlightNode(id);
-                });
-            });
-        }
-
-        // Tooltip
-        function showTooltip(e, activity) {
-            const rect = e.target.getBoundingClientRect();
-            tooltip.querySelector('.tooltip-title').textContent = `${activity.id}: ${activity.attivita}`;
-            tooltip.querySelector('.tooltip-desc').textContent = activity.macro ? `${activity.area} > ${activity.macro}` : activity.area || '';
-            tooltip.querySelector('.tooltip-meta').innerHTML = `
-                <div class="tooltip-meta-item"><span class="label">Owner:</span> ${activity.owner || '-'}</div>
-                <div class="tooltip-meta-item"><span class="label">Release:</span> ${activity.release || '-'}</div>
-                <div class="tooltip-meta-item"><span class="label">Predecessore:</span> ${activity.predecessore || '-'}</div>
-                ${criticalPath.includes(activity.id) ? '<div class="tooltip-meta-item" style="color: var(--critical-red)">🔴 Critical Path</div>' : ''}
-            `;
-            
-            tooltip.style.left = (rect.right + 10) + 'px';
-            tooltip.style.top = rect.top + 'px';
-            tooltip.classList.add('visible');
-        }
-
-        function hideTooltip() {
-            tooltip.classList.remove('visible');
-        }
-
-        function highlightNode(id) {
-            const node = document.querySelector(`.activity-node[data-id="${id}"]`);
-            if (node) {
-                node.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-                node.style.transform = 'scale(1.1)';
-                node.style.boxShadow = '0 0 20px var(--accent-blue)';
-                setTimeout(() => {
-                    node.style.transform = '';
-                    node.style.boxShadow = '';
-                }, 2000);
-            }
-        }
-
-        function highlightConnections(id) {
-            // Reset all paths
-            document.querySelectorAll('.connection-path').forEach(p => {
-                p.style.strokeWidth = '';
-                p.style.opacity = '';
-            });
-            // Could highlight specific connections here
-        }
-
-        // View Toggle
-        viewBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                viewBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                if (btn.dataset.view === 'flow') {
-                    flowView.classList.remove('hidden');
-                    matrixView.classList.remove('active');
-                } else {
-                    flowView.classList.add('hidden');
-                    matrixView.classList.add('active');
-                    renderMatrixView();
-                }
-            });
-        });
-
-        // Filters
-        filterCritical.addEventListener('change', () => {
-            renderFlowView();
-            renderMatrixView();
-        });
-
-        filterRelease.addEventListener('change', () => {
-            renderFlowView();
-            renderMatrixView();
-        });
-
-        searchInput.addEventListener('input', () => {
-            renderFlowView();
-            renderMatrixView();
-        });
-
-        // Release card click
-        document.querySelectorAll('.release-card').forEach(card => {
-            card.addEventListener('click', () => {
-                filterRelease.value = card.dataset.release;
-                renderFlowView();
-                renderMatrixView();
-            });
-        });
-
-        // Initialize
-        renderFlowView();
-        renderCriticalPath();
-    </script>
-</body>
-</html>
+<!doctype html><html lang="it"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard GANTT WP01 · CRM UNINT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --bg0:#0a111e;--bg1:#0e1726;--panel:#141f30;--panel2:#18243700;--card:#1b2738;--card2:#202e44;
+ --line:#283a54;--line2:#1f2d42;--txt:#e8eef6;--mut:#8696ad;--mut2:#5f6f87;
+ --red:#ff4d52;--redsoft:#ff6b6f;--blue:#2f7df6;--green:#15c47e;--amber:#e8a33d;--grey:#41526c;
+ --crit:#ff3b3b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#0a111e,#0c1422 60%,#0a111e);color:var(--txt);
+ font-family:Inter,system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh}
+.mono{font-family:'JetBrains Mono',monospace}
+.app{max-width:1640px;margin:0 auto;padding:20px 22px 40px}
+/* header */
+.top{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:space-between;
+ background:linear-gradient(180deg,#162234,#111b2b);border:1px solid var(--line);border-radius:16px;padding:18px 22px}
+.brand{display:flex;align-items:center;gap:14px;min-width:300px}
+.logo{width:48px;height:48px;border-radius:12px;background:conic-gradient(from 210deg,#3b6cf6,#7b5cff,#3bd6f6);
+ display:grid;place-items:center;box-shadow:0 6px 18px rgba(59,108,246,.35)}
+.logo svg{width:26px;height:26px}
+.brand h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em}
+.brand .sub{color:var(--mut);font-size:12.5px;margin-top:2px;display:flex;align-items:center;gap:8px}
+.pill{background:#1d4ed8;color:#dbe6ff;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600}
+.kpis{display:flex;gap:12px}
+.kpi{background:#0f1a2a;border:1px solid var(--line);border-radius:13px;padding:12px 18px;min-width:108px;text-align:center}
+.kpi .v{font-size:26px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.kpi .l{font-size:10px;color:var(--mut);letter-spacing:.12em;margin-top:6px;font-weight:600}
+.kpi.cp .v{color:var(--mut2)} .kpi.cp .v.has{color:var(--red)}
+.kpi.go{background:linear-gradient(135deg,#15c47e,#0fa968);border:0;min-width:188px}
+.kpi.go .v{font-size:20px;color:#06210f} .kpi.go .l{color:#0a3a22}
+/* toolbar */
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0 14px}
+.seg{display:flex;background:#0f1a2a;border:1px solid var(--line);border-radius:11px;padding:4px;gap:3px}
+.seg button{background:none;border:0;color:var(--mut);font:inherit;font-weight:600;font-size:13px;
+ padding:7px 16px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:7px}
+.seg button.on{background:#2f7df6;color:#fff}
+.bar .sp{flex:1}
+.ctrl{display:flex;align-items:center;gap:9px;background:#0f1a2a;border:1px solid var(--line);
+ border-radius:10px;padding:8px 12px;font-size:13px;color:var(--mut);cursor:pointer;user-select:none}
+.ctrl input[type=checkbox]{display:none}
+.cbox{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--grey);display:grid;place-items:center}
+.ctrl.on .cbox{background:var(--red);border-color:var(--red)}
+.ctrl.on{color:var(--txt)} .ctrl .reddot{width:8px;height:8px;border-radius:50%;background:var(--red)}
+select,.search input{background:#0f1a2a;border:1px solid var(--line);color:var(--txt);border-radius:10px;
+ padding:9px 12px;font:inherit;font-size:13px}
+.search{position:relative}.search input{padding-left:32px;width:220px}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;opacity:.5}
+/* main */
+.main{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
+.view{background:#0d1726;border:1px solid var(--line);border-radius:14px;overflow:hidden;min-height:520px}
+/* matrice */
+table{width:100%;border-collapse:collapse}
+thead th{position:sticky;top:0;background:#101c2e;color:var(--mut);text-align:left;font-size:11px;
+ letter-spacing:.1em;font-weight:700;padding:13px 16px;border-bottom:1px solid var(--line);z-index:2}
+tbody td{padding:12px 16px;border-bottom:1px solid var(--line2);font-size:13.5px;vertical-align:middle}
+tbody tr:hover{background:#101d30}
+tr.relrow td{background:#0f1b2d;font-weight:700}
+tr.relrow .rid{color:#46c8ff}
+tr.secrow td{background:#0c1726;color:var(--mut);font-weight:700;letter-spacing:.08em;font-size:12px;text-transform:uppercase}
+.rid{font-family:'JetBrains Mono',monospace;color:var(--red);font-weight:700}
+.rid.crit::before{content:"●";color:var(--crit);font-size:9px;margin-right:6px;vertical-align:1px}
+.relbadge{font-family:'JetBrains Mono',monospace;font-size:10px;background:#15324f;color:#7fb6ff;border:1px solid #244a6e;border-radius:6px;padding:2px 7px}
+.date{font-family:'JetBrains Mono',monospace;color:var(--mut2);font-size:12px}
+.badge{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:4px 11px;border-radius:999px;display:inline-block}
+.b-done{background:rgba(21,196,126,.16);color:#34e09b;border:1px solid rgba(21,196,126,.35)}
+.b-wip{background:#2f7df6;color:#fff}
+.b-todo{background:#33425c;color:#aab8cd}
+.b-out{background:#2a2230;color:#c98a9a;border:1px solid #4a2f3c;text-decoration:line-through}
+.b-ms{background:none;color:#cfd8e6;border:1px solid var(--line);letter-spacing:.1em}
+.b-none{color:var(--mut2)}
+tr.dim,.node.dim{opacity:.25}
+tr.hit td{background:#13243b}
+/* flusso */
+.flwrap{overflow:auto;max-height:74vh}
+.canvas{position:relative}
+.edges{position:absolute;inset:0;pointer-events:none}
+.edge{fill:none;stroke:rgba(120,150,190,.30);stroke-width:1.4}
+.edge.crit{stroke:rgba(255,60,60,.65);stroke-width:1.8}
+.node{position:absolute;border:1.5px solid var(--line);background:linear-gradient(180deg,#15233a,#111c30);
+ border-radius:12px;padding:10px 12px;width:210px;height:74px;overflow:hidden;cursor:default;transition:.15s}
+.node:hover{border-color:#3a557d;box-shadow:0 6px 20px rgba(0,0,0,.4);z-index:5}
+.node .nid{font-family:'JetBrains Mono',monospace;color:var(--red);font-weight:700;font-size:13px}
+.node .natt{font-size:12px;line-height:1.25;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.node .nfoot{position:absolute;left:12px;bottom:8px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.node .ndate{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--mut2)}
+.node.g-REL1{border-left:3px solid #46c8ff}.node.g-REL2{border-left:3px solid #b07bff}
+.node.g-REL3{border-left:3px solid #3bd6c0}
+.node.crit{border-color:var(--crit);box-shadow:0 0 0 1px rgba(255,59,59,.4)}
+.node.crit::after{content:"";position:absolute;top:9px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--crit);box-shadow:0 0 8px var(--crit)}
+.npill{font-size:8.5px;font-weight:700;padding:2px 7px;border-radius:999px}
+/* sidebar */
+.side{background:#0d1726;border:1px solid var(--line);border-radius:14px;padding:16px;position:sticky;top:14px;max-height:84vh;overflow:auto}
+.side h2{font-size:12px;letter-spacing:.1em;margin:0 0 14px;display:flex;align-items:center;gap:9px;color:var(--txt)}
+.side h2 .d{width:11px;height:11px;border-radius:50%;background:var(--red)}
+.cp-empty{color:var(--mut);font-size:12.5px;line-height:1.6;background:#101d30;border:1px dashed var(--line);border-radius:10px;padding:14px}
+.cp-empty b{color:var(--txt)}
+.cpi{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;margin-bottom:6px;background:#101d30;border:1px solid var(--line2)}
+.cpi .n{color:var(--mut2);font-family:'JetBrains Mono',monospace;font-size:11px;width:20px;text-align:right}
+.cpi .id{color:var(--red);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;width:34px}
+.cpi .t{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+footer{color:var(--mut2);font-size:11px;margin-top:18px;text-align:center}
+@media(max-width:1100px){.main{grid-template-columns:1fr}.side{position:static;max-height:none}.kpis{width:100%}}
+</style></head>
+<body><div class="app">
+<div class="top">
+ <div class="brand">
+  <div class="logo"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="4" height="9" rx="1" fill="#fff"/><rect x="10" y="5" width="4" height="15" rx="1" fill="#fff"/><rect x="17" y="8" width="4" height="12" rx="1" fill="#dbe6ff"/></svg></div>
+  <div><h1>Dashboard GANTT WP01</h1>
+   <div class="sub">Progetto CRM UNINT — CRMPartners <span class="pill" id="ver"></span></div></div>
+ </div>
+ <div class="kpis">
+  <div class="kpi"><div class="v" id="k-att"></div><div class="l">ATTIVITÀ</div></div>
+  <div class="kpi cp"><div class="v" id="k-cp">n/d</div><div class="l">CRITICAL PATH</div></div>
+  <div class="kpi go"><div class="v" id="k-go"></div><div class="l">GO-LIVE</div></div>
+ </div>
+</div>
+
+<div class="bar">
+ <div class="seg"><button id="t-flow" class="on" onclick="setView('flow')">↗ Flusso</button>
+  <button id="t-mat" onclick="setView('mat')">▦ Matrice</button></div>
+ <span class="sp"></span>
+ <label class="ctrl" id="cpToggle" onclick="toggleCP()"><span class="cbox"></span><span class="reddot"></span> Critical Path</label>
+ <select id="relSel" onchange="applyFilters()">
+   <option value="all">Tutte le Release</option>
+   <option value="REL1">REL1: CRM Operativo</option>
+   <option value="REL2">REL2: Marketing</option>
+   <option value="REL3">REL3: ESSE3</option>
+   <option value="UAT">UAT</option>
+   <option value="Formazione">Formazione</option>
+ </select>
+ <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+   <input id="q" placeholder="Cerca attività…" oninput="applyFilters()"></div>
+</div>
+
+<div class="main">
+ <div class="view">
+   <div id="flow" class="flwrap"><div class="canvas" id="canvas"><svg class="edges" id="edges"></svg></div></div>
+   <div id="mat" style="display:none"><table><thead><tr>
+     <th>ID</th><th>ATTIVITÀ</th><th>AREA</th><th>OWNER</th><th>RELEASE</th><th>DATE</th><th>STATUS</th>
+   </tr></thead><tbody id="tbody"></tbody></table></div>
+ </div>
+ <div class="side">
+   <h2><span class="d"></span> CRITICAL PATH (<span id="cpn">0</span>)</h2>
+   <div id="cplist"></div>
+ </div>
+</div>
+<footer>Fonte dati: foglio <span class="mono">Piano</span> — UNINT_Piano_Gantt_WP01 (rev __2_). Date normalizzate dal piano effettivo. Generato 19/06/2026.</footer>
+</div>
+<script>
+const DATA={"rows": [{"kind": "rel", "id": "REL1", "att": "RELEASE 1: CRM Operativo", "group": "REL1", "status": "Milestone", "start": "2026-01-07", "end": "2026-01-30"}, {"kind": "task", "rowidx": 1, "id": "0.1", "att": "Attivazione Licenze Zoho ONE", "area": "Accesso", "owner": "Sales", "ownerU": "Stakeholders", "pred": null, "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-02", "end": "2026-01-10", "deps": [], "x": 30, "y": 30}, {"kind": "task", "rowidx": 2, "id": "0.2", "att": "Setup Ambiente CRM", "area": "Accesso", "owner": "Solution", "ownerU": null, "pred": "0.1", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-07", "end": "2026-01-10", "deps": ["0.1"], "x": 330, "y": 30}, {"kind": "task", "rowidx": 3, "id": "1.1", "att": "Configurazione modulo Lead (touchpoint) - Primo punto di contatto con potenziali studenti. Include campi anagrafici, canale acquisizione, fonte campagna", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "0.2, 7.1, 7.2", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "deps": ["0.2", "7.1", "7.2"], "x": 1230, "y": 30}, {"kind": "task", "rowidx": 4, "id": "1.2", "att": "Config modulo Operazioni - Tracciamento attività e task connessi allo studente/lead", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "0.2", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "deps": ["0.2"], "x": 630, "y": 30}, {"kind": "task", "rowidx": 5, "id": "1.3", "att": "Interesse Formativo - Campo select per corso di laurea di interesse, acquisito contestualmente al touch point", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "0.2, 7.1, 7.2", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "deps": ["0.2", "7.1", "7.2"], "x": 1230, "y": 130}, {"kind": "task", "rowidx": 6, "id": "1.4", "att": "Config modulo Corsi - Lista corsi da documento VPI pag.2. Distinzione: corsi lead (prospettici) vs corsi studenti (da ESSE3)", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "0.2, 7.3", "rel": "R1", "status": "Done", "note": "aggiornato con l'ultima offerta formativa 03/02", "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "deps": ["0.2", "7.3"], "x": 1230, "y": 230}, {"kind": "task", "rowidx": 7, "id": "1.5", "att": "Modulo Carriere base - Dati carriera recuperati da ESSE3 per studenti iscritti e laureati", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "0.2, 7.1, 7.2, 7.3", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "deps": ["0.2", "7.1", "7.2", "7.3"], "x": 1230, "y": 330}, {"kind": "task", "rowidx": 8, "id": "1.6", "att": "Config Campi specifici - Campi custom specifici per processi UNINT", "area": "Dati Moduli", "owner": "Solution", "ownerU": null, "pred": "0.2", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "deps": ["0.2"], "x": 630, "y": 130}, {"kind": "task", "rowidx": 9, "id": "1.7", "att": "Creazione modulo contatto e definizione campi", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "1.1", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "deps": ["1.1"], "x": 1530, "y": 30}, {"kind": "task", "rowidx": 10, "id": "1.8", "att": "Gestione Consensi", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "1.1", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "deps": ["1.1"], "x": 1530, "y": 130}, {"kind": "task", "rowidx": 11, "id": "1.9", "att": "Workflow rinnovo Consensi", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "1.8", "rel": "R1", "status": "Done", "note": "Da testare scenari corner ", "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "deps": ["1.8"], "x": 1830, "y": 30}, {"kind": "task", "rowidx": 12, "id": "1.10", "att": "Iter vs l'immatricolazione - Processo completo dall'interesse all'immatricolazione", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "1.1 - 1.6", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-19", "end": "2026-01-31", "deps": ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"], "x": 1530, "y": 230}, {"kind": "task", "rowidx": 13, "id": "1.11", "att": "Gestione prove VPI", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "1.1 - 1.6", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-19", "end": "2026-04-30", "deps": ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"], "x": 1530, "y": 330}, {"kind": "task", "rowidx": 14, "id": "2.1", "att": "Scuole ed Università di provenienza e codici meccanografici", "area": "Data set", "owner": "Solution", "ownerU": null, "pred": "0.2", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-19", "end": "2026-01-31", "deps": ["0.2"], "x": 630, "y": 330}, {"kind": "task", "rowidx": 15, "id": "2.3", "att": "Gestione Iscrizioni colloqui, prove, etc ", "area": "Portale", "owner": "Solution", "ownerU": null, "pred": "1.1 - 1.6, 7.1 -7.3", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-19", "end": "2026-04-30", "deps": ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "7.1", "7.2", "7.3"], "x": 1530, "y": 430}, {"kind": "task", "rowidx": 16, "id": "2.4", "att": "Gestione dati colloqui orientamento e appuntamenti, etc", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "0.2", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-19", "end": "2026-04-30", "deps": ["0.2"], "x": 630, "y": 430}, {"kind": "task", "rowidx": 17, "id": "2.5", "att": "Gestione automatismi come reminder automatici, conferme, follow-up, etc", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "2.4", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-19", "end": "2026-04-30", "deps": ["2.4"], "x": 930, "y": 330}, {"kind": "task", "rowidx": 18, "id": "3.1", "att": "Flussi gestione condivisi tra uffici e corretto label del lead. Configurazione permessi e visibilità dati tra OR, WOSS, SCDL", "area": "Bacini Utenze", "owner": "Solution", "ownerU": null, "pred": "0.2", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-19", "end": "2026-04-30", "deps": ["0.2"], "x": 630, "y": 530}, {"kind": "task", "rowidx": 19, "id": "3.2", "att": "Forms Open Day/ Colloquio Orientamento/ Salone Orientamento/ Scuole/ VPI/ Etc. ", "area": "Forms", "owner": "Solution", "ownerU": null, "pred": "2.1", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-19", "end": "2026-02-28", "deps": ["2.1"], "x": 930, "y": 430}, {"kind": "task", "rowidx": 20, "id": "4.1", "att": "Workflows/ Automazioni e Custom Functions core: azioni automatiche", "area": "Blueprint", "owner": "Solution", "ownerU": null, "pred": "1.11, 2.1, 3.1", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-19", "end": "2026-05-15", "deps": ["1.11", "2.1", "3.1"], "x": 1830, "y": 130}, {"kind": "task", "rowidx": 21, "id": "4.2", "att": "Template email automatiche, notifiche interne, etc ", "area": "Blueprint", "owner": "Solution", "ownerU": null, "pred": "4.1", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-19", "end": "2026-01-31", "deps": ["4.1"], "x": 2130, "y": 30}, {"kind": "task", "rowidx": 22, "id": "4.3", "att": "Integrazione workdrive e gestione documentazione condivisa", "area": "Workdrive", "owner": "Solution", "ownerU": null, "pred": "0.2", "rel": "R1", "status": "In progress", "note": "Sviluppo tecnico ", "group": "REL1", "start": "2026-01-19", "end": "2026-05-03", "deps": ["0.2"], "x": 630, "y": 630}, {"kind": "task", "rowidx": 23, "id": "4.4", "att": "Gestione duplicati, regole deduplicazione lead e contatti", "area": "Blueprint", "owner": "Solution", "ownerU": null, "pred": "1.1,1.7", "rel": "R1", "status": "Done", "note": null, "group": "REL1", "start": "2026-01-19", "end": "2026-01-31", "deps": ["1.1", "1.7"], "x": 1830, "y": 230}, {"kind": "rel", "id": "REL2", "att": "RELEASE 2: Automazioni + Marketing", "group": "REL2", "status": "Milestone", "start": null, "end": null}, {"kind": "task", "rowidx": 25, "id": "5.1", "att": "UTM Trackers", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "4.1", "rel": "R2", "status": "Done", "note": null, "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "deps": ["4.1"], "x": 2130, "y": 130}, {"kind": "task", "rowidx": 26, "id": "5.2", "att": "Accordi Marketing (Accounts)", "area": "Moduli", "owner": "Solution", "ownerU": null, "pred": "5.1", "rel": "R2", "status": "Done", "note": null, "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "deps": ["5.1"], "x": 2430, "y": 30}, {"kind": "task", "rowidx": 27, "id": "5.3", "att": "Gestione Bacini accordi marketing, segmentazione per campagne", "area": "Contatti", "owner": "Solution", "ownerU": null, "pred": "5.2", "rel": "R2", "status": "Done", "note": null, "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "deps": ["5.2"], "x": 2730, "y": 30}, {"kind": "task", "rowidx": 28, "id": "5.4", "att": "Gestione anagrafica aziende - campi specifici", "area": "Contatti", "owner": "Solution", "ownerU": null, "pred": "5.2", "rel": "R2", "status": "Done", "note": null, "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "deps": ["5.2"], "x": 2730, "y": 130}, {"kind": "task", "rowidx": 29, "id": "5.5", "att": "Automatizzazione contatto", "area": "Automazioni", "owner": "Solution", "ownerU": null, "pred": "5.3", "rel": "R2", "status": "Done", "note": null, "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "deps": ["5.3"], "x": 3030, "y": 30}, {"kind": "task", "rowidx": 30, "id": "5.6", "att": "Wireframe Landing", "area": "Forms", "owner": "Solution", "ownerU": null, "pred": "5.1", "rel": "R2", "status": "Done", "note": null, "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "deps": ["5.1"], "x": 2430, "y": 130}, {"kind": "task", "rowidx": 31, "id": "5.7", "att": "Landing Triennali/Magistrali", "area": "Form", "owner": "Solution", "ownerU": null, "pred": "5.7", "rel": "R2", "status": "Done", "note": null, "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "deps": [], "x": 30, "y": 330}, {"kind": "task", "rowidx": 32, "id": "5.8", "att": "Survey config", "area": "Survey", "owner": "Solution", "ownerU": null, "pred": "1.5, 2.3", "rel": "R2", "status": "Out", "note": null, "group": "REL2", "start": "2026-02-13", "end": "2026-03-01"}, {"kind": "task", "rowidx": 33, "id": "5.9", "att": "Invio automatico survey post-evento", "area": "Survey", "owner": "Solution", "ownerU": null, "pred": "5.9", "rel": "R2", "status": "Out", "note": null, "group": "REL2", "start": "2026-02-13", "end": "2026-03-01"}, {"kind": "task", "rowidx": 34, "id": "6.1", "att": "Integrazione Marketing (GAds, Meta)", "area": "Integrazioni", "owner": "Solution", "ownerU": null, "pred": "5.1", "rel": "R2", "status": "Done", "note": null, "group": "REL2", "start": "2026-02-02", "end": "2026-03-01", "deps": ["5.1"], "x": 2430, "y": 230}, {"kind": "task", "rowidx": 35, "id": "6.2", "att": "WhatsApp numeri + validazione + automazioni messaggistica. Dipendenze esterne", "area": "Integrazioni", "owner": "Solution", "ownerU": null, "pred": "1.1", "rel": "R2", "status": "In progress", "note": null, "group": "REL2", "start": "2026-02-01", "end": null, "deps": ["1.1"], "x": 1530, "y": 530}, {"kind": "task", "rowidx": 36, "id": "6.3", "att": "VoIP - telefonia integrata nel CRM", "area": "Integrazioni", "owner": "Solution + Dev", "ownerU": null, "pred": "1.1", "rel": "R2", "status": "Done", "note": null, "group": "REL2", "start": "2026-02-01", "end": "2026-03-01", "deps": ["1.1"], "x": 1530, "y": 630}, {"kind": "task", "rowidx": 37, "id": "6.4", "att": "LinkedIn", "area": "Integrazioni", "owner": "Solution + Dev", "ownerU": null, "pred": "1.1", "rel": "R2", "status": "Done", "note": null, "group": "REL2", "start": "2026-03-01", "end": "2026-03-15", "deps": ["1.1"], "x": 1530, "y": 730}, {"kind": "task", "rowidx": 38, "id": "6.5", "att": "Moodle, connessione piattaforma e-learning", "area": "Integrazioni", "owner": "Solution", "ownerU": null, "pred": "2.3", "rel": "R2", "status": "Done", "note": null, "group": "REL2", "start": "2026-03-01", "end": "2026-03-15", "deps": ["2.3"], "x": 1830, "y": 330}, {"kind": "rel", "id": "REL3", "att": "RELEASE Rolling: ESSE3 + Dashboard", "group": "REL3", "status": "Milestone", "start": null, "end": null}, {"kind": "task", "rowidx": 40, "id": "7.1", "att": "ESSE3 Integrazione intercettazione interessato/ registrato", "area": "Integrazioni", "owner": "Developer", "ownerU": null, "pred": "0.2", "rel": "R1", "status": "Done", "note": null, "group": "REL3", "start": "2026-01-07", "end": "2026-01-19", "deps": ["0.2"], "x": 630, "y": 230}, {"kind": "task", "rowidx": 41, "id": "7.2", "att": "ESSE3 Integrazione intercettazione pre-immatricolato", "area": "Integrazioni", "owner": null, "ownerU": null, "pred": "7.1", "rel": "R1", "status": "Done", "note": null, "group": "REL3", "start": "2026-01-07", "end": "2026-01-19", "deps": ["7.1"], "x": 930, "y": 30}, {"kind": "task", "rowidx": 42, "id": "7.3", "att": "ESSE3 Carriere, recupero dati carriere studenti iscritti e laureati", "area": "Integrazioni", "owner": "Developer", "ownerU": null, "pred": "7.1", "rel": "R1, R2", "status": "Done", "note": null, "group": "REL3", "start": "2026-01-07", "end": "2026-01-31", "deps": ["7.1"], "x": 930, "y": 130}, {"kind": "task", "rowidx": 43, "id": "7.4", "att": "ESSE3 Integrazione modulo Corsi ed allineamento offerta formativa da ESSE3", "area": "Integrazioni", "owner": "Developer", "ownerU": null, "pred": "7.1", "rel": "R2", "status": "Done", "note": null, "group": "REL3", "start": "2026-01-07", "end": "2026-01-31", "deps": ["7.1"], "x": 930, "y": 230}, {"kind": "task", "rowidx": 44, "id": "7.5", "att": "Automazioni e gestioni flussi operazioni", "area": "Integrazioni", "owner": "Developer", "ownerU": null, "pred": "7.3", "rel": "R2", "status": "Done", "note": null, "group": "REL3", "start": "2026-01-07", "end": "2026-05-31", "deps": ["7.3"], "x": 1230, "y": 430}, {"kind": "task", "rowidx": 45, "id": "7.6", "att": "Sviluppo Flusso integrazioni (connettore, traduttori, etc) per sincronizzazione", "area": "Integrazioni", "owner": "Developer", "ownerU": null, "pred": "7.3", "rel": "R2", "status": "Done", "note": null, "group": "REL3", "start": "2026-01-07", "end": "2026-01-31", "deps": ["7.3"], "x": 1230, "y": 530}, {"kind": "task", "rowidx": 46, "id": "7.7", "att": "Sviluppi aggiuntivi", "area": "Integrazioni", "owner": "Developer", "ownerU": null, "pred": null, "rel": null, "status": "Done", "note": null, "group": "REL3", "start": "2026-01-07", "end": "2026-04-30", "deps": [], "x": 30, "y": 130}, {"kind": "task", "rowidx": 47, "id": "7.8", "att": "Call dedicate con Ufficio Sviluppo", "area": "Integrazioni", "owner": "Developer", "ownerU": "Ufficio Sviluppo", "pred": "3 date in 3 settimane consecutive", "rel": null, "status": "Done", "note": null, "group": "REL3", "start": "2026-01-31", "end": "2026-01-31", "deps": [], "x": 30, "y": 230}, {"kind": "task", "rowidx": 48, "id": "7.7", "att": "Dashboard (Analytics)", "area": "Analytics", "owner": "Solution", "ownerU": null, "pred": "5.1, 6.1", "rel": "R3", "status": "Done", "note": null, "group": "REL3", "start": "2026-02-02", "end": "2026-03-01", "deps": ["5.1", "6.1"], "x": 30, "y": 430}, {"kind": "sec", "id": "UAT", "att": "UAT", "group": "UAT", "status": null, "start": null, "end": null}, {"kind": "task", "rowidx": 50, "id": null, "att": "Test funzionali interni CRMPartners", "area": null, "owner": "Solution", "ownerU": null, "pred": "REL1, REL2", "rel": null, "status": "Done", "note": null, "group": "UAT", "start": "2026-03-02", "end": "2026-03-15"}, {"kind": "task", "rowidx": 51, "id": null, "att": "UAT con utenti UNINT", "area": null, "owner": "Solution", "ownerU": "UNINT", "pred": "REL1, REL2", "rel": "UAT1", "status": "Milestone", "note": "da ripianificare per 14/02 con stakeholder principali e date aggiuntive con i stakeholder uffici ", "group": "UAT", "start": "2026-01-31", "end": "2026-03-01"}, {"kind": "task", "rowidx": 52, "id": null, "att": "Bug fixing, integrazione feedback emerso da UAT testing ", "area": null, "owner": "Solution", "ownerU": null, "pred": "REL1, REL2", "rel": "UAT2", "status": "Done", "note": null, "group": "UAT", "start": "2026-03-01", "end": "2026-06-22"}, {"kind": "sec", "id": "Formazione", "att": "Formazione", "group": "Formazione", "status": null, "start": null, "end": null}, {"kind": "task", "rowidx": 54, "id": null, "att": "Preparazione materiale formativo", "area": null, "owner": "Solution", "ownerU": null, "pred": "UAT2", "rel": null, "status": "Done", "note": null, "group": "Formazione", "start": "2026-02-02", "end": "2026-03-15"}, {"kind": "task", "rowidx": 55, "id": null, "att": "Formazione COM", "area": null, "owner": "Solution", "ownerU": "COM", "pred": null, "rel": "F.COM", "status": "Done", "note": null, "group": "Formazione", "start": "2026-03-15", "end": "2026-03-31"}, {"kind": "task", "rowidx": 56, "id": null, "att": "Formazione OR", "area": null, "owner": "Solution", "ownerU": "OR", "pred": null, "rel": "F.OR", "status": "Done", "note": null, "group": "Formazione", "start": "2026-03-15", "end": "2026-03-31"}, {"kind": "task", "rowidx": 57, "id": null, "att": "Formazione WOSS", "area": null, "owner": "Solution", "ownerU": "WOSS", "pred": null, "rel": "F.WOSS", "status": "Done", "note": null, "group": "Formazione", "start": "2026-03-15", "end": "2026-04-30"}, {"kind": "task", "rowidx": 58, "id": null, "att": "Formazione SCDL", "area": null, "owner": "Solution", "ownerU": "SCDL", "pred": null, "rel": "F.SCDL", "status": "Done", "note": null, "group": "Formazione", "start": "2026-03-15", "end": "2026-04-30"}, {"kind": "task", "rowidx": 59, "id": null, "att": "Cutover", "area": null, "owner": null, "ownerU": "Stakeholders", "pred": null, "rel": null, "status": "Done", "note": null, "group": "Formazione", "start": "2026-05-15", "end": "2026-05-15"}, {"kind": "task", "rowidx": 60, "id": null, "att": "Go-Live WP01", "area": null, "owner": null, "ownerU": null, "pred": null, "rel": null, "status": "Done", "note": null, "group": "WP02", "start": null, "end": "2026-05-21"}], "flusso": {"nodes": [{"id": "0.1", "att": "Attivazione Licenze Zoho ONE", "status": "Done", "group": "REL1", "start": "2026-01-02", "end": "2026-01-10", "x": 30, "y": 30, "deps": []}, {"id": "0.2", "att": "Setup Ambiente CRM", "status": "Done", "group": "REL1", "start": "2026-01-07", "end": "2026-01-10", "x": 330, "y": 30, "deps": ["0.1"]}, {"id": "1.1", "att": "Configurazione modulo Lead (touchpoint) - Primo punto di contatto con potenziali studenti. Include campi anagrafici, canale acquisizione, fonte campagna", "status": "Done", "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "x": 1230, "y": 30, "deps": ["0.2", "7.1", "7.2"]}, {"id": "1.2", "att": "Config modulo Operazioni - Tracciamento attività e task connessi allo studente/lead", "status": "Done", "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "x": 630, "y": 30, "deps": ["0.2"]}, {"id": "1.3", "att": "Interesse Formativo - Campo select per corso di laurea di interesse, acquisito contestualmente al touch point", "status": "Done", "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "x": 1230, "y": 130, "deps": ["0.2", "7.1", "7.2"]}, {"id": "1.4", "att": "Config modulo Corsi - Lista corsi da documento VPI pag.2. Distinzione: corsi lead (prospettici) vs corsi studenti (da ESSE3)", "status": "Done", "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "x": 1230, "y": 230, "deps": ["0.2", "7.3"]}, {"id": "1.5", "att": "Modulo Carriere base - Dati carriera recuperati da ESSE3 per studenti iscritti e laureati", "status": "Done", "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "x": 1230, "y": 330, "deps": ["0.2", "7.1", "7.2", "7.3"]}, {"id": "1.6", "att": "Config Campi specifici - Campi custom specifici per processi UNINT", "status": "Done", "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "x": 630, "y": 130, "deps": ["0.2"]}, {"id": "1.7", "att": "Creazione modulo contatto e definizione campi", "status": "Done", "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "x": 1530, "y": 30, "deps": ["1.1"]}, {"id": "1.8", "att": "Gestione Consensi", "status": "Done", "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "x": 1530, "y": 130, "deps": ["1.1"]}, {"id": "1.9", "att": "Workflow rinnovo Consensi", "status": "Done", "group": "REL1", "start": "2026-01-07", "end": "2026-01-19", "x": 1830, "y": 30, "deps": ["1.8"]}, {"id": "1.10", "att": "Iter vs l'immatricolazione - Processo completo dall'interesse all'immatricolazione", "status": "Done", "group": "REL1", "start": "2026-01-19", "end": "2026-01-31", "x": 1530, "y": 230, "deps": ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"]}, {"id": "1.11", "att": "Gestione prove VPI", "status": "Done", "group": "REL1", "start": "2026-01-19", "end": "2026-04-30", "x": 1530, "y": 330, "deps": ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"]}, {"id": "2.1", "att": "Scuole ed Università di provenienza e codici meccanografici", "status": "Done", "group": "REL1", "start": "2026-01-19", "end": "2026-01-31", "x": 630, "y": 330, "deps": ["0.2"]}, {"id": "2.3", "att": "Gestione Iscrizioni colloqui, prove, etc ", "status": "Done", "group": "REL1", "start": "2026-01-19", "end": "2026-04-30", "x": 1530, "y": 430, "deps": ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "7.1", "7.2", "7.3"]}, {"id": "2.4", "att": "Gestione dati colloqui orientamento e appuntamenti, etc", "status": "Done", "group": "REL1", "start": "2026-01-19", "end": "2026-04-30", "x": 630, "y": 430, "deps": ["0.2"]}, {"id": "2.5", "att": "Gestione automatismi come reminder automatici, conferme, follow-up, etc", "status": "Done", "group": "REL1", "start": "2026-01-19", "end": "2026-04-30", "x": 930, "y": 330, "deps": ["2.4"]}, {"id": "3.1", "att": "Flussi gestione condivisi tra uffici e corretto label del lead. Configurazione permessi e visibilità dati tra OR, WOSS, SCDL", "status": "Done", "group": "REL1", "start": "2026-01-19", "end": "2026-04-30", "x": 630, "y": 530, "deps": ["0.2"]}, {"id": "3.2", "att": "Forms Open Day/ Colloquio Orientamento/ Salone Orientamento/ Scuole/ VPI/ Etc. ", "status": "Done", "group": "REL1", "start": "2026-01-19", "end": "2026-02-28", "x": 930, "y": 430, "deps": ["2.1"]}, {"id": "4.1", "att": "Workflows/ Automazioni e Custom Functions core: azioni automatiche", "status": "Done", "group": "REL1", "start": "2026-01-19", "end": "2026-05-15", "x": 1830, "y": 130, "deps": ["1.11", "2.1", "3.1"]}, {"id": "4.2", "att": "Template email automatiche, notifiche interne, etc ", "status": "Done", "group": "REL1", "start": "2026-01-19", "end": "2026-01-31", "x": 2130, "y": 30, "deps": ["4.1"]}, {"id": "4.3", "att": "Integrazione workdrive e gestione documentazione condivisa", "status": "In progress", "group": "REL1", "start": "2026-01-19", "end": "2026-05-03", "x": 630, "y": 630, "deps": ["0.2"]}, {"id": "4.4", "att": "Gestione duplicati, regole deduplicazione lead e contatti", "status": "Done", "group": "REL1", "start": "2026-01-19", "end": "2026-01-31", "x": 1830, "y": 230, "deps": ["1.1", "1.7"]}, {"id": "5.1", "att": "UTM Trackers", "status": "Done", "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "x": 2130, "y": 130, "deps": ["4.1"]}, {"id": "5.2", "att": "Accordi Marketing (Accounts)", "status": "Done", "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "x": 2430, "y": 30, "deps": ["5.1"]}, {"id": "5.3", "att": "Gestione Bacini accordi marketing, segmentazione per campagne", "status": "Done", "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "x": 2730, "y": 30, "deps": ["5.2"]}, {"id": "5.4", "att": "Gestione anagrafica aziende - campi specifici", "status": "Done", "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "x": 2730, "y": 130, "deps": ["5.2"]}, {"id": "5.5", "att": "Automatizzazione contatto", "status": "Done", "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "x": 3030, "y": 30, "deps": ["5.3"]}, {"id": "5.6", "att": "Wireframe Landing", "status": "Done", "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "x": 2430, "y": 130, "deps": ["5.1"]}, {"id": "5.7", "att": "Landing Triennali/Magistrali", "status": "Done", "group": "REL2", "start": "2026-02-02", "end": "2026-02-13", "x": 30, "y": 330, "deps": []}, {"id": "6.1", "att": "Integrazione Marketing (GAds, Meta)", "status": "Done", "group": "REL2", "start": "2026-02-02", "end": "2026-03-01", "x": 2430, "y": 230, "deps": ["5.1"]}, {"id": "6.2", "att": "WhatsApp numeri + validazione + automazioni messaggistica. Dipendenze esterne", "status": "In progress", "group": "REL2", "start": "2026-02-01", "end": null, "x": 1530, "y": 530, "deps": ["1.1"]}, {"id": "6.3", "att": "VoIP - telefonia integrata nel CRM", "status": "Done", "group": "REL2", "start": "2026-02-01", "end": "2026-03-01", "x": 1530, "y": 630, "deps": ["1.1"]}, {"id": "6.4", "att": "LinkedIn", "status": "Done", "group": "REL2", "start": "2026-03-01", "end": "2026-03-15", "x": 1530, "y": 730, "deps": ["1.1"]}, {"id": "6.5", "att": "Moodle, connessione piattaforma e-learning", "status": "Done", "group": "REL2", "start": "2026-03-01", "end": "2026-03-15", "x": 1830, "y": 330, "deps": ["2.3"]}, {"id": "7.1", "att": "ESSE3 Integrazione intercettazione interessato/ registrato", "status": "Done", "group": "REL3", "start": "2026-01-07", "end": "2026-01-19", "x": 630, "y": 230, "deps": ["0.2"]}, {"id": "7.2", "att": "ESSE3 Integrazione intercettazione pre-immatricolato", "status": "Done", "group": "REL3", "start": "2026-01-07", "end": "2026-01-19", "x": 930, "y": 30, "deps": ["7.1"]}, {"id": "7.3", "att": "ESSE3 Carriere, recupero dati carriere studenti iscritti e laureati", "status": "Done", "group": "REL3", "start": "2026-01-07", "end": "2026-01-31", "x": 930, "y": 130, "deps": ["7.1"]}, {"id": "7.4", "att": "ESSE3 Integrazione modulo Corsi ed allineamento offerta formativa da ESSE3", "status": "Done", "group": "REL3", "start": "2026-01-07", "end": "2026-01-31", "x": 930, "y": 230, "deps": ["7.1"]}, {"id": "7.5", "att": "Automazioni e gestioni flussi operazioni", "status": "Done", "group": "REL3", "start": "2026-01-07", "end": "2026-05-31", "x": 1230, "y": 430, "deps": ["7.3"]}, {"id": "7.6", "att": "Sviluppo Flusso integrazioni (connettore, traduttori, etc) per sincronizzazione", "status": "Done", "group": "REL3", "start": "2026-01-07", "end": "2026-01-31", "x": 1230, "y": 530, "deps": ["7.3"]}, {"id": "7.7", "att": "Sviluppi aggiuntivi", "status": "Done", "group": "REL3", "start": "2026-01-07", "end": "2026-04-30", "x": 30, "y": 130, "deps": []}, {"id": "7.8", "att": "Call dedicate con Ufficio Sviluppo", "status": "Done", "group": "REL3", "start": "2026-01-31", "end": "2026-01-31", "x": 30, "y": 230, "deps": []}, {"id": "7.7", "att": "Dashboard (Analytics)", "status": "Done", "group": "REL3", "start": "2026-02-02", "end": "2026-03-01", "x": 30, "y": 430, "deps": ["5.1", "6.1"]}], "edges": [{"f": "0.1", "t": "0.2"}, {"f": "0.2", "t": "1.1"}, {"f": "7.1", "t": "1.1"}, {"f": "7.2", "t": "1.1"}, {"f": "0.2", "t": "1.2"}, {"f": "0.2", "t": "1.3"}, {"f": "7.1", "t": "1.3"}, {"f": "7.2", "t": "1.3"}, {"f": "0.2", "t": "1.4"}, {"f": "7.3", "t": "1.4"}, {"f": "0.2", "t": "1.5"}, {"f": "7.1", "t": "1.5"}, {"f": "7.2", "t": "1.5"}, {"f": "7.3", "t": "1.5"}, {"f": "0.2", "t": "1.6"}, {"f": "1.1", "t": "1.7"}, {"f": "1.1", "t": "1.8"}, {"f": "1.8", "t": "1.9"}, {"f": "1.1", "t": "1.10"}, {"f": "1.2", "t": "1.10"}, {"f": "1.3", "t": "1.10"}, {"f": "1.4", "t": "1.10"}, {"f": "1.5", "t": "1.10"}, {"f": "1.6", "t": "1.10"}, {"f": "1.1", "t": "1.11"}, {"f": "1.2", "t": "1.11"}, {"f": "1.3", "t": "1.11"}, {"f": "1.4", "t": "1.11"}, {"f": "1.5", "t": "1.11"}, {"f": "1.6", "t": "1.11"}, {"f": "0.2", "t": "2.1"}, {"f": "1.1", "t": "2.3"}, {"f": "1.2", "t": "2.3"}, {"f": "1.3", "t": "2.3"}, {"f": "1.4", "t": "2.3"}, {"f": "1.5", "t": "2.3"}, {"f": "1.6", "t": "2.3"}, {"f": "7.1", "t": "2.3"}, {"f": "7.2", "t": "2.3"}, {"f": "7.3", "t": "2.3"}, {"f": "0.2", "t": "2.4"}, {"f": "2.4", "t": "2.5"}, {"f": "0.2", "t": "3.1"}, {"f": "2.1", "t": "3.2"}, {"f": "1.11", "t": "4.1"}, {"f": "2.1", "t": "4.1"}, {"f": "3.1", "t": "4.1"}, {"f": "4.1", "t": "4.2"}, {"f": "0.2", "t": "4.3"}, {"f": "1.1", "t": "4.4"}, {"f": "1.7", "t": "4.4"}, {"f": "4.1", "t": "5.1"}, {"f": "5.1", "t": "5.2"}, {"f": "5.2", "t": "5.3"}, {"f": "5.2", "t": "5.4"}, {"f": "5.3", "t": "5.5"}, {"f": "5.1", "t": "5.6"}, {"f": "5.1", "t": "6.1"}, {"f": "1.1", "t": "6.2"}, {"f": "1.1", "t": "6.3"}, {"f": "1.1", "t": "6.4"}, {"f": "2.3", "t": "6.5"}, {"f": "0.2", "t": "7.1"}, {"f": "7.1", "t": "7.2"}, {"f": "7.1", "t": "7.3"}, {"f": "7.1", "t": "7.4"}, {"f": "7.3", "t": "7.5"}, {"f": "7.3", "t": "7.6"}, {"f": "5.1", "t": "7.7"}, {"f": "6.1", "t": "7.7"}], "W": 3270, "H": 834, "CW": 210, "CH": 74}, "relname": {"REL1": "Release 1 · CRM Operativo", "REL2": "Release 2 · Automazioni + Marketing", "REL3": "Release Rolling · ESSE3 + Dashboard", "UAT": "UAT", "Formazione": "Formazione", "WP02": "Go-Live"}, "kpi": {"att": 44, "done": 51, "wip": 2, "out": 2, "golive": "21/05/2026"}};
+const GEN="19/06/2026";
+let CRITICAL=[]; // ← elenco ufficiale del critical path: vuoto finché non confermato
+let cpOn=false, view='flow';
+const fmt=d=>{if(!d)return '—';const[y,m,da]=d.split('-');return da+'/'+m;};
+document.getElementById('ver').textContent='v3 · '+GEN;
+document.getElementById('k-att').textContent=DATA.kpi.att;
+document.getElementById('k-go').textContent=DATA.kpi.golive;
+const critSet=()=>new Set(CRITICAL);
+
+function statusBadge(s){
+ if(s==='Done')return '<span class="badge b-done">DONE</span>';
+ if(s==='In progress')return '<span class="badge b-wip">IN PROGRESS</span>';
+ if(s==='To do'||s==='Todo')return '<span class="badge b-todo">TO DO</span>';
+ if(s==='Out')return '<span class="badge b-out">OUT</span>';
+ if(s==='Milestone')return '<span class="badge b-ms">MILESTONE</span>';
+ return '<span class="b-none">—</span>';}
+function npill(s){
+ if(s==='Done')return '<span class="npill b-done">DONE</span>';
+ if(s==='In progress')return '<span class="npill b-wip">IN PROGRESS</span>';
+ if(s==='Out')return '<span class="npill b-out">OUT</span>';
+ return '<span class="npill b-todo">TO DO</span>';}
+
+/* MATRICE */
+function buildMat(){
+ const cs=critSet();
+ let h='';
+ for(const r of DATA.rows){
+  if(r.kind==='rel'){h+=`<tr class="relrow" data-g="${r.group}"><td class="rid">${r.id}</td><td>${r.att.replace(/^RELEASE[^:]*:\s*/,'RELEASE: ')}</td><td>–</td><td>–</td><td>–</td><td class="date">${fmt(r.start)} → ${fmt(r.end)}</td><td>${statusBadge('Milestone')}</td></tr>`;continue;}
+  if(r.kind==='sec'){h+=`<tr class="secrow" data-g="${r.group}"><td colspan="7">${r.att}</td></tr>`;continue;}
+  const crit=r.id&&cs.has(r.id);
+  h+=`<tr data-g="${r.group}" data-id="${r.id||''}" data-txt="${(r.att||'').toLowerCase()} ${(r.id||'')}">`+
+     `<td><span class="rid ${crit?'crit':''}">${r.id||'·'}</span></td>`+
+     `<td>${r.att||''}</td><td>${r.area||'—'}</td><td>${r.owner||'—'}</td>`+
+     `<td>${r.rel?`<span class="relbadge">${r.rel}</span>`:'—'}</td>`+
+     `<td class="date">${fmt(r.start)} → ${fmt(r.end)}</td><td>${statusBadge(r.status)}</td></tr>`;
+ }
+ document.getElementById('tbody').innerHTML=h;
+}
+/* FLUSSO */
+function buildFlow(){
+ const f=DATA.flusso, cs=critSet();
+ const cv=document.getElementById('canvas');
+ cv.style.width=f.W+'px';cv.style.height=f.H+'px';
+ const svg=document.getElementById('edges');
+ svg.setAttribute('viewBox',`0 0 ${f.W} ${f.H}`);svg.style.width=f.W+'px';svg.style.height=f.H+'px';
+ const byId={};f.nodes.forEach(n=>byId[n.id]=n);
+ let ep='';
+ for(const e of f.edges){const a=byId[e.f],b=byId[e.t];if(!a||!b)continue;
+  const x1=a.x+f.CW,y1=a.y+f.CH/2,x2=b.x,y2=b.y+f.CH/2,dx=Math.max(40,(x2-x1)/2);
+  const crit=cs.has(e.f)&&cs.has(e.t);
+  ep+=`<path class="edge ${crit?'crit':''}" d="M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}"/>`;}
+ svg.innerHTML=ep;
+ // remove old nodes
+ [...cv.querySelectorAll('.node')].forEach(n=>n.remove());
+ for(const n of f.nodes){const crit=cs.has(n.id);
+  const el=document.createElement('div');
+  el.className=`node g-${n.group} ${crit?'crit':''}`;el.style.left=n.x+'px';el.style.top=n.y+'px';
+  el.dataset.g=n.group;el.dataset.id=n.id;el.dataset.txt=(n.att||'').toLowerCase()+' '+n.id;
+  el.innerHTML=`<div class="nid">${n.id}</div><div class="natt">${n.att}</div>`+
+   `<div class="nfoot"><span class="ndate">${fmt(n.start)}→${fmt(n.end)}</span>${npill(n.status)}</div>`;
+  cv.appendChild(el);}
+}
+/* CP sidebar */
+function buildCP(){
+ const box=document.getElementById('cplist');
+ document.getElementById('cpn').textContent=CRITICAL.length;
+ const kcp=document.getElementById('k-cp');
+ if(CRITICAL.length){kcp.textContent=CRITICAL.length;kcp.classList.add('has');}
+ else{kcp.textContent='n/d';kcp.classList.remove('has');}
+ if(!CRITICAL.length){
+  box.innerHTML=`<div class="cp-empty"><b>Da definire.</b> Il file non contiene un flag di critical path e le date non permettono un calcolo CPM affidabile. Fornisci l'elenco ufficiale (o aggiungo una colonna <b>CP</b> nell'Excel da spuntare) e il percorso si popola qui e si evidenzia nelle due viste.</div>`;
+  return;}
+ const map={};DATA.rows.forEach(r=>{if(r.id)map[r.id]=r.att;});
+ box.innerHTML=CRITICAL.map((id,i)=>`<div class="cpi"><span class="n">${i+1}</span><span class="id">${id}</span><span class="t">${(map[id]||'').slice(0,40)}</span></div>`).join('');
+}
+/* view + filters */
+function setView(v){view=v;
+ document.getElementById('flow').style.display=v==='flow'?'':'none';
+ document.getElementById('mat').style.display=v==='mat'?'':'none';
+ document.getElementById('t-flow').classList.toggle('on',v==='flow');
+ document.getElementById('t-mat').classList.toggle('on',v==='mat');
+ applyFilters();}
+function toggleCP(){cpOn=!cpOn;document.getElementById('cpToggle').classList.toggle('on',cpOn);applyFilters();}
+function applyFilters(){
+ const rel=document.getElementById('relSel').value;
+ const q=document.getElementById('q').value.trim().toLowerCase();
+ const cs=critSet();
+ const test=el=>{
+  const g=el.dataset.g, txt=el.dataset.txt||'', id=el.dataset.id||'';
+  let ok=(rel==='all'||g===rel);
+  if(ok&&q)ok=txt.includes(q);
+  if(ok&&cpOn&&CRITICAL.length)ok=cs.has(id);
+  return ok;};
+ document.querySelectorAll('#tbody tr[data-id], #tbody tr.relrow, #tbody tr.secrow').forEach(tr=>{
+  if(tr.classList.contains('relrow')||tr.classList.contains('secrow')){
+    tr.style.display=(rel==='all'&&!q&&!(cpOn&&CRITICAL.length))?'':'none';return;}
+  const ok=test(tr);tr.style.display=ok?'':'none';
+  tr.classList.toggle('hit',!!q&&ok);});
+ document.querySelectorAll('.node').forEach(n=>{n.classList.toggle('dim',!test(n));});
+}
+buildMat();buildFlow();buildCP();applyFilters();
+</script></body></html>
